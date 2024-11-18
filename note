@@ -1,0 +1,78 @@
+book-app/
+│
+├── public/                   # Public directory for static assets
+│   ├── index.html            # Main HTML file
+│   └── assets/               # Static assets like images, logos, etc.
+│
+├── src/
+│   ├── assets/               # App-specific static assets like icons, images, etc.
+│   ├── components/           # Reusable UI components for both admin and user areas
+│   │   ├── shared/           # Shared components between admin and user
+│   │   │   ├── Button.js     # Reusable button component
+│   │   │   └── Loader.js     # Loading spinner component
+│   │   ├── admin/            # Admin-specific components
+│   │   │   ├── AdminNav.js   # Navigation bar for admin
+│   │   │   ├── AdminFooter.js# Footer for admin section
+│   │   │   ├── AdminHeader.js# Header for admin section
+│   │   │   └── Sidebar.js    # Admin sidebar navigation
+│   │   ├── user/             # User-specific components
+│   │   │   ├── UserNav.js    # Navigation bar for users
+│   │   │   ├── UserFooter.js # Footer for user section
+│   │   │   └── UserHeader.js # Header for user section
+│   │   └── ...               # Additional reusable components
+│
+│   ├── features/             # Feature-specific components or pages
+│   │   ├── Admin/            # Admin-related components/pages
+│   │   │   ├── AddBook.js    # Admin form to upload a new book
+│   │   │   ├── ManageBooks.js# Admin dashboard to manage books
+│   │   │   ├── AdminLogin.js # Admin login page
+│   │   │   └── AdminRegister.js # Admin registration page
+│   │   │
+│   │   ├── Books/            # Book-related components/pages for users
+│   │   │   ├── BookDetail.js # User view of book details and chapters
+│   │   │   ├── BooksList.js  # User view displaying all books with filtering and pagination
+│   │   │   ├── Chapter.js    # User view of reading a specific chapter
+│   │   │   └── Purchase.js   # Page for users to purchase access to premium chapters
+│   │   │
+│   │   ├── User/             # User-related components/pages
+│   │   │   ├── Profile.js    # User profile page
+│   │   │   ├── UserLogin.js  # User login page
+│   │   │   └── UserRegister.js# User registration page
+│   │
+│   ├── hooks/                # Custom React hooks
+│   │   └── useFetchBooks.js  # Custom hook for fetching books from the API
+│   │
+│   ├── layouts/              # Layouts for pages
+│   │   ├── AdminLayout.js    # Layout for admin dashboard (admin header, nav, footer)
+│   │   ├── UserLayout.js     # Layout for user app (user header, nav, footer)
+│   │   └── AuthLayout.js     # Layout for authentication pages (can be shared)
+│   │
+│   ├── pages/                # Main pages of the app
+│   │   ├── HomePage.js       # User home page displaying featured books and latest updates
+│   │   ├── AdminDashboard.js # Admin dashboard (manage books, users, chapters)
+│   │   ├── SearchPage.js     # Page for searching and filtering books (user side)
+│   │   ├── TrendingPage.js   # Page displaying trending books (user side)
+│   │   └── NotFound.js       # 404 Page for both user and admin areas
+│   │
+│   ├── services/             # API calls and business logic
+│   │   ├── api.js            # Centralized file for API requests (books, chapters, users)
+│   │   └── paymentService.js # Payment processing integration
+│   │
+│   ├── state/                # State management (could be context API, Redux, etc.)
+│   │   ├── bookContext.js    # Context for managing book-related data
+│   │   ├── userContext.js    # Context for managing user authentication and info
+│   │   └── ...               # Any other global state management files
+│   │
+│   ├── styles/               # Tailwind CSS and custom styling (if needed)
+│   │   └── globals.css       # Global styles and Tailwind config
+│   │
+│   ├── App.js                # Main app component (routes, layouts, etc.)
+│   ├── index.js              # Entry point for React app
+│   └── utils/                # Utility functions
+│       ├── formatDate.js     # Date formatting utility
+│       └── validateForm.js   # Form validation logic
+│
+├── tailwind.config.js        # Tailwind CSS configuration file
+├── postcss.config.js         # PostCSS configuration (used with Tailwind)
+├── package.json              # Project dependencies and scripts
+└── .env                      # Environment variables (API keys, etc.)

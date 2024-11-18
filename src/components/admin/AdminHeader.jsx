@@ -1,9 +1,5 @@
 import {BsPersonCircle, BsSearch, BsJustify } from "react-icons/bs"
-// height: 60px;
-// display: flex;
-// align-items: center;
-// justify-content: space-between;
-// padding: 0 30px 0 30px;
+
 function AdminHeader({OpenSidebar}) {
   return (
 	<header className="header h-14 flex items-center justify-between px-8">

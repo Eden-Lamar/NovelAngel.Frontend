@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import {BsGrid1X2Fill, BsFillGrid3X3GapFill, BsPeopleFill, BsFillGearFill} from "react-icons/bs"
 import { MdCancel } from "react-icons/md";
 import { ImBooks } from "react-icons/im";
@@ -16,41 +17,41 @@ function Sidebar({openSidebarToggle, OpenSidebar}) {
 
 		<ul className="sidebar-list">
 			<li className="sidebar-list-item px-4 py-5 text-lg">
-				<a href="" className="flex items-center">
+				<Link to="/admin" className="flex items-center">
 					<BsGrid1X2Fill className="icon"/> Dashboard
-				</a>
+				</Link>
 			</li>
 			<li className="sidebar-list-item px-4 py-5 text-lg">
-				<a href="" className="flex items-center">
+				<Link to="/admin/create-book" className="flex items-center">
 					<ImBooks className="icon text-2xl"/> Create Book
-				</a>
+				</Link>
 			</li>
 			<li className="sidebar-list-item px-4 py-5 text-lg">
-				<a href="" className="flex items-center">
+				<Link to="#" className="flex items-center">
 					<BsFillGrid3X3GapFill className="icon"/> Books
-				</a>
+				</Link>
 			</li>
 			<li className="sidebar-list-item px-4 py-5 text-lg">
-				<a href="" className="flex items-center">
+				<Link to="#" className="flex items-center">
 					<BsPeopleFill className="icon"/> Profile
-				</a>
+				</Link>
 			</li>
 
 			{/* <li className="sidebar-list-item px-4 py-5 text-lg">
-				<a href="" className="flex items-center">
+				<Link to="" className="flex items-center">
 					<BsListCheck className="icon"/> Inventory
-				</a>
+				</Link>
 			</li>
 			<li className="sidebar-list-item px-4 py-5 text-lg">
-				<a href="" className="flex items-center">
+				<Link to="" className="flex items-center">
 					<BsMenuButtonWideFill className="icon"/> Report
-				</a>
+				</Link>
 			</li> */}
 
 			<li className="sidebar-list-item px-4 py-5 text-lg">
-				<a href="" className="flex items-center">
+				<Link to="#" className="flex items-center">
 					<BsFillGearFill className="icon"/> Settings
-				</a>
+				</Link>
 			</li>
 		</ul>
 
