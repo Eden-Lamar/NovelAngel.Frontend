@@ -4,6 +4,7 @@ import AdminHeader from "../components/admin/AdminHeader";
 import Sidebar from "../components/admin/Sidebar";
 import AdminDashboard from "../pages/AdminDashboard";
 import CreateBook from "../features/Admin/CreateBook";  // Import CreateBook page
+import AddChapter from "../features/Admin/AddChapter";  
 
 import "../components/admin/admin.css"
 
@@ -23,6 +24,7 @@ const AdminLayout = () => {
 				<Routes>
 				<Route path="/" element={<AdminDashboard />} />
 				<Route path="create-book" element={<CreateBook />} />
+				<Route path="add-chapter" element={<AddChapter />} />
 				</Routes>
 			</div>
 		</div>
