@@ -2,7 +2,9 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { FaRegEyeSlash, FaRegEye  } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import { useState } from "react";
+// import { useAuth } from '../../context/AuthContext';
 
 
 
@@ -95,13 +97,14 @@ const AdminRegister = () => {
 						<div className="absolute right-3 top-3 cursor-pointer text-black text-lg" onClick={() => setShowPassword(!showPassword)}>
 							{showPassword ? <FaRegEye /> : <FaRegEyeSlash />}
 						</div>
-							{errors.password && <p className="text-red-500">{errors.username.message}</p>}
+							{errors.password && <p className="text-red-500">{errors.password.message}</p>}
 						</div>
 							
 						<div>
 							<button className="btn btn-outline w-full btn-info">Sign Up</button>
 						</div>
-
+						
+						<p className="mt-6 text-sm">Already have an account? <Link to="/login" className="text-blue-500"> Login</Link> </p>
 					</form>
 				</div>
 		</div>
