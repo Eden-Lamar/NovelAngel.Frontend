@@ -24,7 +24,7 @@ const AdminLayout = () => {
 				<Routes>
 				<Route path="/" element={<AdminDashboard />} />
 				<Route path="create-book" element={<CreateBook />} />
-				<Route path="add-chapter" element={<AddChapter />} />
+				<Route path="add-chapter/:bookId" element={<AddChapter />} />
 				</Routes>
 			</div>
 		</div>
