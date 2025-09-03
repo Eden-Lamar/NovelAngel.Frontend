@@ -4,6 +4,10 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { Select } from "antd";
 import "antd/dist/reset.css"; // Ensure Ant Design styles are imported
+import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 const { Option } = Select;
 
@@ -14,7 +18,14 @@ const bookSchema = yup.object().shape({
   description: yup.string().required("Description is required").min(20, 'Too Short!').max(200, 'Too Long!'),
   category: yup.string().required("Category is required"),
   tags: yup.string().required("Tags are required"),
-  bookImage: yup.string().required("Book Image is required"),
+  bookImage: yup
+    .mixed()
+    .required("Book Image is required")
+    .test("fileExists", "Book Image is required", (value) => value && value[0])
+    .test("fileType", "Only image files (JPEG, PNG, GIF, WebP) are allowed", 
+      (value) => value && value[0] && ["image/jpeg", "image/png", "image/gif", "image/webp"].includes(value[0].type))
+    .test("fileSize", "File size must be less than 10MB", 
+      (value) => value && value[0] && value[0].size <= 10000000),
 });
 
 function CreateBook() {
@@ -24,14 +35,30 @@ function CreateBook() {
     handleSubmit, 
     control,
     setValue,
+    reset,
     // getValues, 
     formState: { errors } 
   } = useForm({
     resolver: yupResolver(bookSchema),
+    defaultValues: {
+      title: "",
+      author: "",
+      description: "",
+      category: "",
+      tags: "Action",
+      bookImage: null,
+    },
   });
+  
+  const { auth } = useAuth(); // Get auth context for token
+  const navigate = useNavigate();
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Handle form submission
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
+    setLoading(true); // Show spinner
     console.log("Form data:", data);
 
     // Adjust form data for API compatibility
@@ -42,13 +69,91 @@ function CreateBook() {
     formData.append("category", data.category);
     formData.append("tags", data.tags); // Already a comma-separated string
     formData.append("bookImage", data.bookImage[0]); // Send file
-    console.log("FormData for API:", formData);
+   
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/api/v1/admin/books",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            "Authorization": `Bearer ${auth?.token}`,
+          },
+        }
+      );
+      console.log("Book created successfully:", response.data);
+      setSuccess("Book created successfully!");
+      setError(null); // Clear any previous errors
+      reset(); // Reset form fields
 
-    // Here, you can use `fetch` or `axios` to send `formData` to the API
+      // Redirect to add-chapter with bookId
+      setTimeout(() => {
+        navigate(`/admin/add-chapter/${response.data.data._id}`);
+      }, 3000); // Delay redirect to show success message
+
+    } catch (err) {
+      const errorMessage = err.response?.data?.error || "Failed to create book. Please try again.";
+      setError(errorMessage);
+      console.error("Error creating book:", errorMessage);
+      setSuccess(null); // Clear any previous success message
+    } finally {
+      setLoading(false); // Hide spinner
+    }
   };
+  
+  // Clear success/error messages and redirect after 5 seconds
+  useEffect(() => {
+    if (success || error) {
+      const timer = setTimeout(() => {
+        setSuccess(null);
+        setError(null);
+      }, 5000);
+      return () => clearTimeout(timer); // Cleanup timer prolactin
+
+    }
+  }, [success, error]);
 
   return (
     <div className="create-book-form">
+      {/* Display success or error messages */}
+      <div className={`w-1/2 mt-3 mx-auto ${success || error ? "block animate__animated animate__fadeInDown" : "hidden"}`}>
+        {success && (
+          <div role="alert" className="alert alert-success">
+            <svg
+              className="h-6 w-6 shrink-0 stroke-current"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span>{success}</span>
+          </div>
+        )}
+        {error && (
+          <div role="alert" className="alert alert-error">
+            <svg
+              className="h-6 w-6 shrink-0 stroke-current"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span>{error}</span>
+          </div>
+        )}
+      </div>
+
+      {/* FORM */}
       <h2 className="text-2xl font-bold mb-4">Create New Book</h2>
       <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-2 gap-4">
 		
@@ -129,7 +234,8 @@ function CreateBook() {
         </div>
 
         <div className="flex justify-center col-span-2">
-          <button type="submit" className="btn btn-outline btn-info w-1/2">
+          <button type="submit" className="btn btn-outline btn-info w-1/2 flex items-center gap-2 disabled:opacity-100 disabled:cursor-not-allowed" disabled={loading} >
+            {loading && <span className="loading loading-spinner"></span>}
             Create Book
           </button>
         </div>
