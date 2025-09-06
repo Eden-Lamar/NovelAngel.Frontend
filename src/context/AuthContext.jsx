@@ -47,11 +47,17 @@ export const AuthProvider = ({ children }) => {
       console.log(token)
       const { exp } = jwtDecode(token); // Decode the JWT to get expiration time
       const expirationTime = exp * 1000 - Date.now(); // Calculate time until expiration
+      // console.log('Current Time:', new Date(Date.now()).toISOString());
+      // console.log('Token Expiration:', new Date(exp * 1000).toISOString());
+      // console.log('Expiration Time (ms):', expirationTime);
 
       if (expirationTime > 0) {
+        const MAX_TIMEOUT_DELAY = 2147483647; // ~24.8 days in ms
+        const safeDelay = Math.min(expirationTime, MAX_TIMEOUT_DELAY);
+        console.log(`Scheduling logout in ${safeDelay / 1000} seconds (capped if necessary)`);
         setTimeout(() => {
           handleTokenInvalidation("Your session has expired. Please log in again.");
-        }, expirationTime);
+        }, safeDelay);
       } else {
         handleTokenInvalidation("Your session has expired. Please log in again.");
       }
