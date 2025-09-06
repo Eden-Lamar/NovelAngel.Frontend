@@ -15,7 +15,7 @@ const { Option } = Select;
 const bookSchema = yup.object().shape({
   title: yup.string().required("Title is required").min(6, 'Too Short!').max(80, 'Too Long!'),
   author: yup.string().required("Author is required").min(3, 'Too Short!').max(50, 'Too Long!'),
-  description: yup.string().required("Description is required").min(20, 'Too Short!').max(200, 'Too Long!'),
+  description: yup.string().required("Description is required").min(20, 'Too Short!').max(1000, 'Too Long!'),
   category: yup.string().required("Category is required"),
   tags: yup.string().required("Tags are required"),
   bookImage: yup
@@ -24,8 +24,8 @@ const bookSchema = yup.object().shape({
     .test("fileExists", "Book Image is required", (value) => value && value[0])
     .test("fileType", "Only image files (JPEG, PNG, GIF, WebP) are allowed", 
       (value) => value && value[0] && ["image/jpeg", "image/png", "image/gif", "image/webp"].includes(value[0].type))
-    .test("fileSize", "File size must be less than 10MB", 
-      (value) => value && value[0] && value[0].size <= 10000000),
+    .test("fileSize", "File size must be less than 3MB", 
+      (value) => value && value[0] && value[0].size <= 3000000),
 });
 
 function CreateBook() {
@@ -229,6 +229,7 @@ function CreateBook() {
         <div>
           <label htmlFor="bookImage" className="block mb-1 font-semibold">Book Image</label>
           <input type="file" {...register("bookImage")} className="file-input file-input-bordered file-input-info file-input-lg w-full max-w-xs" />
+            <p className="label text-white text-sm">Max size 3MB</p>
 
           {errors.bookImage && <p className="text-red-500">{errors.bookImage.message}</p>}
         </div>
