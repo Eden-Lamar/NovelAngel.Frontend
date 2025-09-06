@@ -1,10 +1,12 @@
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import axios from "axios";
+import { CiLock, CiUnlock  } from "react-icons/ci";
 import { useAuth } from "../../context/AuthContext";
-import { useParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import {CapitalizeFirstLetter } from "../../helperFunction";
 
 // Define validation schema with Yup
 const chapterSchema = yup.object().shape({
@@ -22,7 +24,7 @@ function AddChapter() {
     formState: { errors } 
   } = useForm({
     resolver: yupResolver(chapterSchema),
-		 defaultValues: {
+      defaultValues: {
 			title: "",
 			content: "",
 			isLocked: false,
@@ -36,6 +38,7 @@ function AddChapter() {
   const [success, setSuccess] = useState(null);
   const [loading, setLoading] = useState(false);
   const [book, setBook] = useState(null);
+  const [chapters, setChapters] = useState([]);
   const [chapterCount, setChapterCount] = useState(0);
   const [fetchError, setFetchError] = useState(null);
   const [fetchLoading, setFetchLoading] = useState(true);
@@ -45,14 +48,26 @@ function AddChapter() {
     const fetchBookData = async () => {
       setFetchLoading(true); // Start loading
       try {
-        const response = await axios.get(`http://localhost:3000/api/v1/books/${bookId}`);
+        const response = await axios.get(`http://localhost:3000/api/v1/books/${bookId}`, {
+          headers: {
+            "Cache-Control": "no-cache", // Prevent cached response
+          },
+        });
         console.log("Book data fetched successfully:", response.data);
         if (!response.data.data) {
           throw new Error("Book data not found in response");
         }
         setBook(response.data.data);
+        setChapters(response.data.data.chapters);
         setChapterCount(response.data.data.chapters.length);
         setFetchError(null);
+
+        // Reset form with dynamic isLocked default based on freeChapters
+        reset({
+          title: "",
+          content: "",
+          isLocked: (response.data.data.chapters.length + 1) > response.data.data.freeChapters,
+        });
       } catch (err) {
         const errorMessage = err.response?.status === 404 
           ? "Book not found. Please check the book ID."
@@ -64,10 +79,14 @@ function AddChapter() {
       }
     };
     fetchBookData();
-  }, [bookId]);
+  }, [bookId, reset]);
 
   // Handle form submission
   const onSubmit = async (data) => {
+    if (!book) {
+      setError("Cannot create chapter: Book details not loaded.");
+      return;
+    }
     setLoading(true); // Show spinner
     try {
       const response = await axios.post(
@@ -86,8 +105,14 @@ function AddChapter() {
       console.log("Chapter created successfully:", response.data);
       setSuccess("Chapter created successfully!");
       setError(null); // Clear any previous errors
+      // Update chapters and chapter count
+      setChapters((prev) => [...prev, response.data.data].sort((a, b) => a.chapterNo - b.chapterNo));
       // Reset form field
-      reset();
+      reset({
+        title: "",
+        content: "",
+        isLocked: (chapterCount + 2) > book.freeChapters,
+      });
       // Update chapter count
       setChapterCount((prev) => prev + 1);
     } catch (err) {
@@ -136,7 +161,7 @@ function AddChapter() {
       )}
       
       {/* Display success or error messages */}
-      <div className={`fixed top-14 left-1/2 transform -translate-x-1/2 mt-3 w-1/2 ${success || error ? "block animate__animated animate__fadeInDown" : "hidden"}`} style={{ marginLeft: '-210px' }}>
+      <div className={`fixed top-14 left-1/2 transform -translate-x-1/2 mt-3 w-1/2 z-20 ${success || error ? "block animate__animated animate__fadeInDown" : "hidden"}`} style={{ marginLeft: '-210px' }}>
         {success && (
           <div role="alert" className="alert alert-success w-full text-center">
             <svg
@@ -176,24 +201,59 @@ function AddChapter() {
 
       <div className="flex space-x-5">
         {/* Display book details */}
-        {!fetchLoading && book && (        
-          <div className="card bg-base-50 image-full shadow-xl w-2/5 h-1/5">
-            <figure>
-              <img
-                src={book.bookImage}
-                alt={book.title}
-                // height={100}
-                // width={150}
-                className="object-cover h-48 w-full"
-              />
-            </figure>
-            <div className="card-body">
-              <h2 className="card-title text-white">{book.title}</h2>
-              <p className="text-white">Chapter {chapterCount + 1}</p>
-              
+        {!fetchLoading && book && (
+          <div className="w-2/5">        
+            <div className="card bg-base-50 image-full shadow-xl w-2/3 h-2/6 overflow-hidden group">
+              <figure className="relative overflow-hidden">
+                <img
+                  src={book.bookImage}
+                  alt={book.title}
+                  className="object-cover h-48 w-full transform transition-transform duration-300 ease-in-out group-hover:scale-110"
+                />
+              </figure>
+              <div className="card-body">
+                <h2 className="card-title text-white">{CapitalizeFirstLetter(book.title)}</h2>
+                <p className="text-white">Chapter {chapterCount + 1}</p>
+              </div>
             </div>
-          </div>
 
+            {/* Display chapter table */}
+            {chapters.length > 0 ? (
+              <div className="overflow-x-auto mt-10">
+                <table className="table table-zebra w-full bg-custom-striped">
+                  <thead>
+                    <tr>
+                      <th className="py-4 text-base">Chapter</th>
+                      <th className="py-4 text-base">Title</th>
+                      <th className="py-4 text-base">Locked Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {chapters.map((chapter) => (
+                      <tr key={chapter._id}>
+                        <th  className="py-4 text-base">{chapter.chapterNo}</th>
+                        <td  className="py-4 text-base">{CapitalizeFirstLetter(chapter.title)}</td>
+                        <td  className="py-4 text-base">
+                          <div className="lg:tooltip" data-tip={chapter.isLocked ? "Locked" : "Free"}>
+                            {chapter.isLocked ? (
+                              <CiLock  className="text-red-500"/>
+                            ) : (
+                              <CiUnlock className="text-green-500"/>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center mt-12 text-xl">
+                <p>No chapters</p>
+              </div>
+            )}
+            
+        </div>
         )}
         <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-4 w-8/12 mx-auto">
           <div>
@@ -224,7 +284,7 @@ function AddChapter() {
                 type="checkbox"
                 {...register("isLocked")}
                 className="checkbox checkbox-info"
-                disabled={fetchLoading || !!fetchError}
+                disabled={fetchLoading || !!fetchError || (book && chapterCount + 1 <= book.freeChapters)}
               />
               <span>Lock Chapter (Premium Content)</span>
             </label>
