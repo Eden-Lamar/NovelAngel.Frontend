@@ -5,8 +5,8 @@ import { GrInProgress } from "react-icons/gr";
 import { IoCheckmarkDoneCircle } from "react-icons/io5"
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { startCase, truncate } from 'lodash';
 import { useAuth } from "../context/AuthContext";
-import { CapitalizeFirstLetter } from "../helperFunction";
 
 
 function AdminDashboard() {
@@ -176,7 +176,7 @@ function AdminDashboard() {
                         ))
                     ) : (
                         books.map((book) => (
-                            <div key={book._id} className="card bg-base-50 image-full shadow-xl w-48 h-72 flex-shrink-0 group over">
+                            <div key={book._id} className="card bg-base-50 image-full shadow-xl w-48 h-72 flex-shrink-0 group">
                                 <figure className="relative overflow-hidden">
                                     <img
                                         src={book.bookImage}
@@ -185,13 +185,13 @@ function AdminDashboard() {
                                     />
                                 </figure>
                                 <div className="card-body p-4">
-                                    <h2 className="card-title text-white text-base">{CapitalizeFirstLetter(book.title)}</h2>
+                                    <h2 className="card-title text-white text-base">{truncate(startCase(book.title))}</h2>
                                     <p className="text-white text-sm">Chapters: {book.chapters.length}</p>
                                 </div>
                             </div>
                         ))
                     )}
-                    <Link to="#" className="btn btn-outline btn-info flex-shrink-0 self-center ml-4">
+                    <Link to="/admin/books" className="btn btn-outline btn-info flex-shrink-0 self-center ml-4">
                         Show More
                     </Link>
                 </div>
