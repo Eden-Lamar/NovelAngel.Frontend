@@ -3,6 +3,7 @@ import { useState } from "react";
 import AdminHeader from "../components/admin/AdminHeader";
 import Sidebar from "../components/admin/Sidebar";
 import AdminDashboard from "../pages/AdminDashboard";
+import Books from "../components/admin/Books";
 import CreateBook from "../features/Admin/CreateBook";  // Import CreateBook page
 import AddChapter from "../features/Admin/AddChapter";  
 
@@ -25,6 +26,8 @@ const AdminLayout = () => {
 				<Route path="/" element={<AdminDashboard />} />
 				<Route path="create-book" element={<CreateBook />} />
 				<Route path="add-chapter/:bookId" element={<AddChapter />} />
+				<Route path="books" element={<Books />} />
+				
 				</Routes>
 			</div>
 		</div>
