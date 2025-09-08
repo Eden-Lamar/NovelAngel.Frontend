@@ -27,7 +27,7 @@ function Sidebar({openSidebarToggle, OpenSidebar}) {
 				</Link>
 			</li>
 			<li className="sidebar-list-item px-4 py-5 text-lg">
-				<Link to="#" className="flex items-center">
+				<Link to="/admin/books" className="flex items-center">
 					<BsFillGrid3X3GapFill className="icon"/> Books
 				</Link>
 			</li>
