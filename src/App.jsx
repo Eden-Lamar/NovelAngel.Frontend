@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import AdminLayout from "./layouts/AdminLayout"
 import AdminLogin from "./features/Admin/AdminLogin"
 import AdminRegister from "./features/Admin/AdminRegister"
+import ProtectedRoute from "./components/admin/ProtectedRoute";
 
 
 function App() {
@@ -14,7 +15,7 @@ function App() {
             <Route path="/register" element={<AdminRegister />} />
 
             {/* Admin routes */}
-            <Route path="/admin/*" element={<AdminLayout />} />
+            <Route path="/admin/*" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>} />
 
             {/* Redirect any unmatched route */}
             <Route path="*" element={<AdminLogin />} />
