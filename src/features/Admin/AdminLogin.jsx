@@ -23,6 +23,8 @@ const registerSchema = yup.object().shape({
 });
 
 const AdminLogin = () => {
+	const { logout } = useAuth();
+
 	const { register, handleSubmit, formState: { errors } } = useForm({
 		resolver: yupResolver(registerSchema),
 	});
@@ -59,11 +61,13 @@ const AdminLogin = () => {
 	};
 
 	useEffect(() => {
+			logout(); // Auto-logout when navigating to login page
+
         if (loginError) {
             const timer = setTimeout(() => setLoginError(null), 5000);
             return () => clearTimeout(timer); // Cleanup the timer on component unmount or re-render
         }
-    }, [loginError]);
+    }, [loginError, logout]);
 
 	return (
 		<div className="relative h-screen bg-admin-register-img bg-cover bg-center md:bg-contain">
