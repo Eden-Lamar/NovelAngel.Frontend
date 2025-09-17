@@ -31,14 +31,9 @@ function AdminDashboard() {
                     axios.get("http://localhost:3000/api/v1/admin/dashboard", {
                         headers: {
                             Authorization: `Bearer ${auth?.token}`,
-                            "Cache-Control": "no-cache"
                         }
                     }),
-                    axios.get("http://localhost:3000/api/v1/books?limit=6", {
-                        headers: {
-                            "Cache-Control": "no-cache"
-                        }
-                    })
+                    axios.get("http://localhost:3000/api/v1/books?limit=6")
                 ]);
 
                 console.log("Dashboard stats response:", statsResponse.data);
@@ -166,29 +161,41 @@ function AdminDashboard() {
                 <div className="flex flex-row gap-4 overflow-x-auto scrollbar-hidden">
                     {loading ? (
                         Array(6).fill().map((_, index) => (
-                            <div key={index} className="card bg-base-50 shadow-xl w-48 h-64 flex-shrink-0">
-                                <div className="skeleton h-40 w-full"></div>
-                                <div className="card-body p-4">
-                                    <div className="skeleton h-6 w-3/4"></div>
-                                    <div className="skeleton h-4 w-1/2 mt-2"></div>
-                                </div>
+                            <div
+                            key={index}
+                            className="relative flex flex-col w-44 flex-shrink-0 shadow-xl rounded-xl"
+                            >
+                            {/* Skeleton for book image (3/4 ratio) */}
+                            <div className="relative overflow-hidden aspect-[3/4] w-full rounded-xl">
+                                <div className="skeleton h-full w-full rounded-xl"></div>
                             </div>
-                        ))
+
+                            {/* Overlay (transparent to keep same card look) */}
+                            <div className="absolute inset-0 bg-black opacity-20 rounded-xl"></div>
+
+                            {/* Skeleton text overlay */}
+                            <div className="absolute inset-0 flex flex-col justify-start p-4 space-y-2">
+                                <div className="skeleton h-5 w-3/4 rounded-md"></div>
+                                <div className="skeleton h-4 w-1/2 rounded-md"></div>
+                            </div>
+                        </div>
+                    ))
                     ) : (
                         books.map((book) => (
-                            <div key={book._id} className="card bg-base-50 image-full shadow-xl w-48 h-72 flex-shrink-0 group">
-                                <figure className="relative overflow-hidden">
+                            <Link to={`/admin/books/${book._id}`} key={book._id} className="relative flex flex-col w-44 flex-shrink-0 shadow-xl rounded-xl group">
+                                <div className="relative overflow-hidden aspect-[3/4] w-full rounded-xl">
                                     <img
                                         src={book.bookImage}
                                         alt={book.title}
-                                        className="object-cover h-40 w-full transform transition-transform duration-300 ease-in-out group-hover:scale-110"
+                                        className="object-cover h-full w-full transform transition-transform duration-300 ease-in-out rounded-xl group-hover:scale-105"
                                     />
-                                </figure>
-                                <div className="card-body p-4">
-                                    <h2 className="card-title text-white text-base">{truncate(startCase(book.title))}</h2>
-                                    <p className="text-white text-sm">Chapters: {book.chapters.length}</p>
                                 </div>
-                            </div>
+                                 <div className="absolute inset-0 bg-black opacity-50 rounded-xl"></div> {/* Background overlay */}
+                                <div className="absolute inset-0 flex flex-col justify-start p-4">
+                                    <h2 className="card-title text-white text-base font-medium group-hover:text-transparent bg-clip-text bg-gradient-to-r from-gold to-cyan-500">{truncate(startCase(book.title))}</h2>
+                                    <p className="text-white text-sm font-medium">{book.chapters.length} {book.chapters.length > 1 ? "Chapters" : "Chapter"}</p>
+                                </div>
+                            </Link>
                         ))
                     )}
                     <Link to="/admin/books" className="btn btn-outline btn-info flex-shrink-0 self-center ml-4">
