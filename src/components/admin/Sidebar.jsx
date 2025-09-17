@@ -32,7 +32,7 @@ function Sidebar({openSidebarToggle, OpenSidebar}) {
 				</Link>
 			</li>
 			<li className="sidebar-list-item px-4 py-5 text-lg">
-				<Link to="#" className="flex items-center">
+				<Link to="/admin/profile" className="flex items-center">
 					<BsPeopleFill className="icon"/> Profile
 				</Link>
 			</li>
