@@ -1,10 +1,11 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { FaRegEyeSlash, FaRegEye  } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-// import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 
 
@@ -23,6 +24,13 @@ const registerSchema = yup.object().shape({
 
 
 const AdminRegister = () => {
+	const { logout } = useAuth();
+	
+	useEffect(() => {
+		logout(); // Auto-logout when navigating to login page
+	}, [logout]);
+
+
 	const { register, handleSubmit, formState: { errors } } = useForm({
 		resolver: yupResolver(registerSchema),
 	});
