@@ -1,0 +1,348 @@
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { startCase, truncate, capitalize } from 'lodash';
+import { useParams, Link } from "react-router-dom";
+import { FaHeart, FaRegEye, FaBookOpen, FaBookReader, FaLock  } from "react-icons/fa";
+import { RiArrowDownWideFill  } from "react-icons/ri";
+// import { PiBooksDuotone } from "react-icons/pi";
+// import Tippy from '@tippyjs/react';
+import 'tippy.js/dist/tippy.css';
+
+function BookDetails() {
+    const { id } = useParams();
+    const [book, setBook] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [showFullDescription, setShowFullDescription] = useState(false);
+    const [activeTab, setActiveTab] = useState('summary');
+
+    // Fetch book details
+    useEffect(() => {
+        const fetchBook = async () => {
+            setLoading(true);
+            try {
+                const response = await axios.get(`http://localhost:3000/api/v1/books/${id}`);
+                console.log("Book details response:", response.data);
+                setBook(response.data.data);
+                setError(null);
+            } catch (err) {
+                const errorMessage = err.response?.data?.message || "Failed to load book details.";
+                setError(errorMessage);
+                console.error("Error fetching book details:", errorMessage);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchBook();
+    }, [id]);
+
+    // Clear error after 10 seconds
+    useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => setError(null), 10000);
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
+
+    // Calculate free and locked chapters
+    const getChapterStats = (chapters) => {
+        // return freeChapters
+        const free = chapters.filter(ch => ch.isLocked === false).length;
+
+        const locked = chapters.length - free;
+        return { free, locked };
+    };
+
+    // Format release date get just the year and the full date
+    const formatDate = (date) => {
+        const fullDate = new Date(date).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        const year = new Date(date).toLocaleDateString('en-US', {
+            year: 'numeric'
+        });
+        return { fullDate, year }
+    };
+
+    return (
+        <main className="main-container p-4">
+            {/* Error Alert */}
+            {error && (
+                <div className="fixed top-16 left-auto lg:left-1/3 -translate-x-1/2 w-4/5 lg:w-1/2 z-50 animate__animated animate__fadeInDown">
+                    <div role="alert" className="alert alert-error flex">
+                        <svg
+                            className="h-6 w-6 shrink-0 stroke-current"
+                            fill="none"
+                            viewBox="0 0 24 24" 
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+                        <span>{error}</span>
+                    </div>
+                </div>
+            )}
+
+            <div className="flex flex-col lg:flex-row gap-6">
+                {/* Left Div: Image and Details */}
+                <div className="w-full lg:w-1/3 flex flex-col gap-2">
+                    {/* Book Image Card */}
+                    {loading ? (
+                        /* Skeleton Loader */
+                        <div className="relative aspect-[3/4] sm:aspect-[2/2.5] md:aspect-[3/4] rounded-xl shadow-xl overflow-hidden">
+                            <div className="skeleton w-full h-full"></div>
+                            <div className="absolute top-2 left-2 skeleton h-6 w-16 rounded-full"></div>
+                            <div className="flex justify-between absolute bottom-0 left-0 p-4 w-full">
+                                <div className="skeleton h-4 w-12"></div>
+                                <div className="skeleton h-4 w-12"></div>
+                            </div>
+                        </div>
+                    ) : book ? (
+                        <div className="relative aspect-[3/4] sm:aspect-[2/2.5] md:aspect-[3/4] rounded-xl shadow-xl group overflow-hidden">
+                                <img
+                                    src={book.bookImage}
+                                    alt={book.title}
+                                    width={300}
+                                    height={400}
+                                    decoding="async"
+                                    className="object-cover w-full h-full transform transition-transform duration-300 ease-in-out group-hover:scale-105"
+                                />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-transparent to-transparent bg-opacity-100"></div>
+
+                                {/* Badge for book status */}
+                            <div className={`absolute top-2 left-2 text-white text-sm rounded-full px-2 py-1 ${ book.status === 'ongoing' ? 'bg-blue-500' : 'bg-green-500'}`}>
+                                {capitalize(book.status)}
+                            </div>
+                                
+                                {/* Views and Likes div */}
+                            <div className="flex justify-between absolute bottom-0 left-0 p-4 w-full">
+                                <p className="text-[#FFD700] text-sm sm:text-base md:text-lg flex items-center">
+                                    <FaHeart className="mr-1" /> {book.likeCount || 0}
+                                </p>
+                                <p className="text-gray-400 text-sm sm:text-base md:text-lg flex items-center">
+                                    <FaRegEye className="mr-1" /> {book.views || 0}
+                                </p>
+                            </div>
+                        </div>
+                    ) : null}
+
+                    {/* Tags */}
+                    {loading ? (
+                        /* Skeleton Loader */
+                        <div className="flex gap-2 flex-wrap w-full p-2">
+                            {Array(3).fill().map((_, index) => (
+                                <div key={index} className="skeleton h-6 w-16 rounded-xl badge-outline"></div>
+                            ))}
+                        </div>
+                    ) : book ? (
+                        <div className="flex gap-2 flex-wrap w-full p-2">
+                            {book.tags.map((tag, index) => (
+                                <span key={index} className="badge badge-outline badge-primary shadow-xl font-medium">{startCase(tag)}</span>
+                            ))}
+                        </div>
+                    ) : null}
+
+                    {/* Book Details Card */}
+                    {loading ? (
+                        /* Skeleton Loader */
+                        <div className="card w-full p-4 border-2 border-blue-500 shadow-md shadow-cyan-500/50">
+                            <div className="card-body sm:grid grid-cols-2 gap-4 p-1">
+                                {Array(6).fill().map((_, index) => (
+                                    <div key={index} className="space-y-1">
+                                        <div className="skeleton h-4 w-16"></div>
+                                        <div className="skeleton h-4 w-24"></div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="card-actions justify-end mt-2">
+                                <div className="skeleton h-10 w-32"></div>
+                            </div>
+                        </div>
+                    ) : book ? (
+                        <div className="card w-full p-4 border-2 border-cyan-500 shadow-md shadow-cyan-500/50">
+                            <div className="card-body sm:grid grid-cols-2 gap-4 p-1 rounded-xl">
+                                <div className="space-y-1">
+                                <p className="text-sm text-[#afafaf]">Author</p><p className="font-medium text-sm 2xl:text-sm">{startCase(book.author)}
+                                </p>
+                                </div>
+
+                                <div className="space-y-1">
+                                <p className="text-sm text-[#afafaf]">Released</p><p className="font-medium text-sm 2xl:text-sm">{formatDate(book.createdAt).year}</p>
+                                </div>
+
+                                <div className="space-y-1">
+                                <p className="text-sm text-[#afafaf]">Chapters</p><p className="font-medium  text-sm 2xl:text-sm">{book.chapters.length}</p>
+                                </div>
+
+                                <div className="space-y-1">
+                                <p className="text-sm text-[#afafaf]">Free Chapters</p><p className="font-medium text-transparent bg-clip-text bg-gradient-to-r from-gold to-blue-500 text-sm 2xl:text-sm">{getChapterStats(book.chapters).free}</p>
+                                </div> 
+                            
+                                <div className="space-y-1">
+                                    <p className="text-sm text-[#afafaf]">Category</p><p className="font-medium  text-sm 2xl:text-sm">{startCase(book.category)}</p>
+                                </div>
+
+                                <div className="space-y-1">
+                                    <p className="text-sm text-[#afafaf]">Uploaded By</p><p className="font-medium  text-sm 2xl:text-sm">{startCase(book.uploadedBy.username)}</p>
+                                </div>
+
+                            </div>
+
+                            <div>
+
+                                <div className="card-actions justify-end mt-2">
+                                    <Link to={`/admin/books/${book._id}/read`} className="btn btn-outline btn-info flex items-center">
+                                        <FaBookOpen className="mr-2" /> Start Reading
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    ) : null}
+                </div>
+
+                {/* Right Div: Title and Tabs */}
+                <div className="w-full lg:w-2/3">
+                {/* Skeleton Loader */}
+                    {loading ? (
+                        <div className="shadow-xl w-full p-4">
+                            <div className="skeleton h-8 w-3/4 mb-4"></div>
+                            <div className="flex gap-2 mb-4">
+                                <div className="skeleton h-10 w-24 rounded"></div>
+                                <div className="skeleton h-10 w-24 rounded"></div>
+                            </div>
+                            <div className="border-[1px] border-gray-700 rounded-lg p-4">
+                                {activeTab === 'summary' ? (
+                                    <div>
+                                        <div className="skeleton h-4 w-full mb-2"></div>
+                                        <div className="skeleton h-4 w-3/4 mb-2"></div>
+                                        <div className="skeleton h-4 w-1/2"></div>
+                                    </div>
+                                ) : (
+                                    <div className="overflow-x-auto">
+                                        <table className="table w-full">
+                                            <thead>
+                                                <tr>
+                                                    <th><div className="skeleton h-6 w-24"></div></th>
+                                                    <th></th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {Array(3).fill().map((_, index) => (
+                                                    <tr key={index}>
+                                                        <td className="flex items-center gap-2">
+                                                            <div className="skeleton w-8 h-8 rounded-full"></div>
+                                                            <div>
+                                                                <div className="skeleton h-4 w-32 mb-1"></div>
+                                                                <div className="skeleton h-3 w-24"></div>
+                                                            </div>
+                                                        </td>
+                                                        <td></td>
+                                                        <td><div className="skeleton h-8 w-16"></div></td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ) : book ? (
+                        <div className="shadow-xl w-full p-4">
+                            <div className="p-4 bg-custom-striped">
+                                    <h2 className="text-2xl text-transparent bg-clip-text bg-gradient-to-r from-gold to-cyan-500">
+                                        {startCase(book.title)}
+                                    </h2>
+                                <div className="tabs tabs-boxed mt-4 ">
+                                    <button
+                                        className={`tab ${activeTab === 'summary' ? 'bg-cyan-500 text-black' : ''}`}
+                                        onClick={() => setActiveTab('summary')}
+                                    >
+                                        Summary
+                                    </button>
+                                    <button
+                                        className={`tab ${activeTab === 'chapters' ? 'bg-cyan-500 text-black' : ''}`}
+                                        onClick={() => setActiveTab('chapters')}
+                                    >
+                                        Chapters
+                                    </button>
+                                </div>
+                                {activeTab === 'summary' && (
+                                    <div className="mt-4">
+                                        <p className="text-white text-base">
+                                            {showFullDescription
+                                                ? startCase(book.description)
+                                                : truncate(startCase(book.description), { length: 150 })}
+                                        </p>
+                                        {book.description.length > 150 && !showFullDescription && (
+                                            <button
+                                                className="flex items-center gap-1 text-cyan-500 mt-2"
+                                                onClick={() => setShowFullDescription(true)}
+                                            >
+                                                Show More
+                                                <RiArrowDownWideFill className="text-xl" />
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                                {activeTab === 'chapters' && (
+                                    <div className="overflow-x-auto mt-4 border-[1px] border-gray-700 rounded-lg">
+                                        <table className="table  w-full">
+                                            <thead className="text-white text-lg font-semibold">
+                                                <tr>
+                                                    <th>Chapters</th>
+                                                    <th></th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="text-white text-base font-medium">
+                                                {book.chapters.map((chapter) => (
+                                                    <tr key={chapter._id}>
+                                                        <td className="flex items-center gap-2">
+                                                            <div className={`flex items-center justify-center w-8 h-8 border-2 ${chapter.isLocked ? 'border-red-500 shadow-lg shadow-red-500/50' : 'border-cyan-500 shadow-lg shadow-cyan-500/50'} rounded-full`}>
+                                                                {chapter.isLocked ? (
+                                                                    <FaLock className="text-red-500 text-sm" />
+                                                                ) : (
+                                                                    <FaBookReader className="text-blue-500 text-sm" />
+                                                                )}
+                                                            </div>
+
+                                                            <div className="ml-2">
+                                                                Chapter {chapter.chapterNo}: {startCase(chapter.title)} <br /> 
+                                                                <span className="text-sm font-light">Released: </span>
+                                                                <span className="text-xs text-[#b9b9b9] font-normal">{formatDate(chapter.createdAt).fullDate}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td></td>
+                                                        <td>
+                                                            <Link
+                                                                to={`/admin/books/${book._id}/read?chapterId=${chapter._id}`}
+                                                                className="btn btn-outline btn-info btn-sm"
+                                                            >
+                                                                Read
+                                                            </Link>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ) : null}
+                </div>
+            </div>
+
+        </main>
+    );
+}
+
+export default BookDetails;
