@@ -9,6 +9,7 @@ import BookReader from '../components/admin/BookReader';
 import BookDetails from "../components/admin/BookDetails";
 import CreateBook from "../features/Admin/CreateBook";  // Import CreateBook page
 import AddChapter from "../features/Admin/AddChapter";  
+import EditBook from "../features/Admin/EditBook";  
 
 
 import "../components/admin/admin.css"
@@ -34,6 +35,7 @@ const AdminLayout = () => {
 				<Route path="books/:id" element={<BookDetails />} />
 				<Route path="books/:bookId/read" element={<BookReader />} />
 				<Route path="profile" element={<Profile />} />
+				<Route path="books/:bookId/edit" element={<EditBook />} />
 				</Routes>
 			</div>
 		</div>

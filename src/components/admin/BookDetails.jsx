@@ -1,15 +1,19 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { startCase, truncate, capitalize } from 'lodash';
-import { useParams, Link } from "react-router-dom";
-import { FaHeart, FaRegEye, FaBookOpen, FaBookReader, FaLock  } from "react-icons/fa";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { FaHeart, FaRegEye, FaBookOpen, FaBookReader, FaLock, FaEdit } from "react-icons/fa";
 import { RiArrowDownWideFill  } from "react-icons/ri";
+import { LuTrash2 } from "react-icons/lu";
 // import { PiBooksDuotone } from "react-icons/pi";
 // import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
+import { useAuth } from "../../context/AuthContext";
 
 function BookDetails() {
     const { id } = useParams();
+		const { auth } = useAuth();
+		const navigate = useNavigate();
     const [book, setBook] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -44,6 +48,20 @@ function BookDetails() {
         }
     }, [error]);
 
+		// Delete book
+		const handleDelete = async () => {
+			try {
+					await axios.delete(`http://localhost:3000/api/v1/admin/books/${id}`, {
+							headers: { Authorization: `Bearer ${auth?.token}` }
+					});
+					setError(null);
+					document.getElementById('delete-book-modal').close();
+					navigate('/admin/books');
+			} catch (err) {
+					setError(err.response?.data?.error || "Failed to delete book.");
+			}
+    };
+
     // Calculate free and locked chapters
     const getChapterStats = (chapters) => {
         // return freeChapters
@@ -57,7 +75,7 @@ function BookDetails() {
     const formatDate = (date) => {
         const fullDate = new Date(date).toLocaleDateString('en-US', {
             year: 'numeric',
-            month: 'long',
+            month: 'short',
             day: 'numeric'
         });
 
@@ -117,7 +135,7 @@ function BookDetails() {
                             <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-transparent to-transparent bg-opacity-100"></div>
 
                                 {/* Badge for book status */}
-                            <div className={`absolute top-2 left-2 text-white text-sm rounded-full px-2 py-1 ${ book.status === 'ongoing' ? 'bg-blue-500' : 'bg-green-500'}`}>
+                            <div className={`absolute top-2 left-2 text-white text-sm rounded-full px-2 py-1 ${ book.status === 'ongoing' ? 'bg-yellow-500' : 'bg-green-500'}`}>
                                 {capitalize(book.status)}
                             </div>
                                 
@@ -257,9 +275,27 @@ function BookDetails() {
                     ) : book ? (
                         <div className="shadow-xl w-full p-4">
                             <div className="p-4 bg-custom-striped">
-                                    <h2 className="text-2xl text-transparent bg-clip-text bg-gradient-to-r from-gold to-cyan-500">
+                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                                    <h2 className="text-2xl text-transparent bg-clip-text bg-gradient-to-r from-gold to-cyan-500 break-words max-w-[600px]">
                                         {startCase(book.title)}
                                     </h2>
+                                    <div className="flex gap-2 shrink-0">
+                                        <Link
+                                            to={`/admin/books/${book._id}/edit`}
+                                            className="btn btn-outline btn-info btn-sm flex items-center whitespace-nowrap"
+                                            aria-label="Edit book"
+                                        >
+                                            <FaEdit className="mr-2" /> Edit Book
+                                        </Link>
+                                        <button
+                                            className="btn btn-outline btn-error btn-sm flex items-center whitespace-nowrap"
+                                            onClick={() => document.getElementById('delete-book-modal').showModal()}
+                                            aria-label="Delete book"
+                                        >
+                                            <LuTrash2 className="mr-2" /> Delete Book
+                                        </button>
+                                    </div>
+																</div>
                                 <div className="tabs tabs-boxed mt-4 ">
                                     <button
                                         className={`tab ${activeTab === 'summary' ? 'bg-cyan-500 text-black' : ''}`}
@@ -340,6 +376,29 @@ function BookDetails() {
                     ) : null}
                 </div>
             </div>
+
+						<dialog id="delete-book-modal" className="modal">
+                <div className="modal-box bg-base-100">
+                    <h3 className="font-bold text-lg text-[#FFD700]">Confirm Deletion</h3>
+                    <p className="py-4 text-white">Are you sure you want to delete this book? This will also delete all associated chapters.</p>
+                    <div className="modal-action">
+                        <button
+                            className="btn btn-outline btn-error"
+                            onClick={handleDelete}
+                            aria-label="Confirm delete book"
+                        >
+                            Confirm
+                        </button>
+                        <button
+                            className="btn btn-outline"
+                            onClick={() => document.getElementById('delete-book-modal').close()}
+                            aria-label="Cancel delete book"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </dialog>
 
         </main>
     );

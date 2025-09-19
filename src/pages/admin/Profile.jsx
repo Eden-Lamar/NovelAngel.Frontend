@@ -5,8 +5,8 @@ import { Link } from "react-router-dom";
 import { FaEdit, FaSave, FaTimes } from "react-icons/fa";
 import { FiUpload } from "react-icons/fi";
 import { LuTrash2, LuMail } from "react-icons/lu";
-import { GoPerson } from "react-icons/go";
-import { RiHistoryLine, RiBook2Line } from "react-icons/ri";
+import { GoPerson, GoHistory  } from "react-icons/go";
+import { RiBook2Line } from "react-icons/ri";
 import { GiBookshelf } from "react-icons/gi";
 import { useAuth } from "../../context/AuthContext";
 import 'animate.css';
@@ -122,7 +122,7 @@ function Profile() {
 							removeAvatar: false,
 						}));
 						setPreviewUrl(null);
-          
+        
 
             setError(null);
         } catch (err) {
@@ -173,12 +173,12 @@ function Profile() {
         <main className="main-container p-4">
             {/* Error Alert */}
             {error && (
-                <div className="fixed top-4 left-1/2 -translate-x-1/2 w-1/2 z-50 animate__animated animate__fadeInDown">
-                    <div role="alert" className="alert alert-error">
+                <div className="fixed top-16 left-auto lg:left-1/3 -translate-x-1/2 w-4/5 lg:w-1/2 z-50 animate__animated animate__fadeInDown">
+                    <div role="alert" className="alert alert-error flex">
                         <svg
                             className="h-6 w-6 shrink-0 stroke-current"
                             fill="none"
-                            viewBox="0 0 24 24"
+                            viewBox="0 0 24 24" 
                         >
                             <path
                                 strokeLinecap="round"
@@ -195,25 +195,34 @@ function Profile() {
             <div className="flex flex-col gap-6">
                 {/* Top Div: Avatar, Username/Email, Edit Button */}
                 {loading ? (
-                    <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-lg bg-custom-striped">
-                        <div className="skeleton w-24 h-24 rounded-full"></div>
-                        <div className="flex-1 space-y-2">
-                            <div className="skeleton h-6 w-1/3"></div>
-                            <div className="skeleton h-4 w-1/2"></div>
+                    <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-xl bg-custom-striped">
+                        <div className="relative">
+                            <div className="skeleton w-[120px] h-[120px] rounded-full"></div>
+                            <div className="skeleton absolute bottom-2 left-1/2 -translate-x-1/2 h-8 w-16 rounded-full"></div>
                         </div>
-                        <div className="skeleton h-10 w-32"></div>
+                        <div className="flex-1 space-y-2">
+                            <div className="flex items-center gap-1">
+                                <div className="skeleton w-4 h-4"></div>
+                                <div className="skeleton h-6 w-1/3"></div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <div className="skeleton w-4 h-4"></div>
+                                <div className="skeleton h-4 w-1/2"></div>
+                            </div>
+                        </div>
+                        <div className="skeleton h-8 w-24"></div>
                     </div>
                 ) : user ? (
-                    <div className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-custom-striped border border-gray-500 rounded-lg">
+                    <div className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-custom-striped rounded-xl">
                     <div className="relative">
                         {/* Avatar Image */}
                         <img
                             src={   
                                 previewUrl // live preview of new upload
                                     ? previewUrl
-																			: formData.removeAvatar
-																		? DEFAULT_AVATAR // if marked for removal, show default
-                                    : user.avatar || DEFAULT_AVATAR // existing avatar if not use a default
+                                        : formData.removeAvatar
+                                    ? DEFAULT_AVATAR // if marked for removal, show default
+                                        : user.avatar || DEFAULT_AVATAR // existing avatar if not use a default
                                 }
                             alt="Avatar"
                             className="w-[120px] h-[120px] aspect-[1/1] rounded-full object-cover"
@@ -275,7 +284,7 @@ function Profile() {
                 ) : null}
 
                 {/* Tabs: Profile and Reading History */}
-                <div className="w-full p-4 border border-gray-500 rounded-lg">
+                <div className="w-full p-4 border-2 border-gray-800 rounded-lg">
                     <div className="tabs tabs-boxed mb-4">
                         <button
                             className={`gap-2 text-base tab ${activeTab === 'profile' ? 'bg-cyan-500 text-black' : ''}`}
@@ -287,7 +296,7 @@ function Profile() {
                             className={`gap-2 text-base tab ${activeTab === 'history' ? 'bg-cyan-500 text-black' : ''}`}
                             onClick={() => setActiveTab('history')}
                         >
-                            <RiHistoryLine /> <span>History</span>
+                            <GoHistory /> <span>History</span>
                         </button>
                     </div>
 
@@ -295,32 +304,39 @@ function Profile() {
                         <div className="p-4">
                             {activeTab === 'profile' ? (
                                 <div className="space-y-4">
-                                    <div className="skeleton h-6 w-1/2"></div>
-                                    <div className="skeleton h-6 w-1/2"></div>
-                                    <div className="skeleton h-6 w-1/2"></div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="skeleton w-6 h-6"></div>
+                                        <div className="skeleton h-6 w-1/2"></div>
+                                    </div>
+                                    <div className="skeleton h-4 w-1/3 italic"></div>
+                                    <div>
+                                        <div className="skeleton h-4 w-16 mb-1"></div>
+                                        <div className="skeleton h-10 w-full"></div>
+                                    </div>
+                                    <div>
+                                        <div className="skeleton h-4 w-16 mb-1"></div>
+                                        <div className="skeleton h-10 w-full"></div>
+                                    </div>
                                 </div>
                             ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="table table-zebra w-full">
-                                        <thead>
-                                            <tr>
-                                                <th><div className="skeleton h-6 w-24"></div></th>
-                                                <th><div className="skeleton h-6 w-24"></div></th>
-                                                <th><div className="skeleton h-6 w-24"></div></th>
-                                                <th><div className="skeleton h-6 w-16"></div></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {Array(3).fill().map((_, index) => (
-                                                <tr key={index}>
-                                                    <td><div className="skeleton h-4 w-32"></div></td>
-                                                    <td><div className="skeleton h-4 w-24"></div></td>
-                                                    <td><div className="skeleton h-4 w-32"></div></td>
-                                                    <td><div className="skeleton h-8 w-16"></div></td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="skeleton w-6 h-6"></div>
+                                        <div className="skeleton h-6 w-1/2"></div>
+                                    </div>
+                                    <div className="flex gap-4 overflow-x-auto py-4">
+                                        {Array(3).fill().map((_, index) => (
+                                            <div key={index} className="skeleton w-60 h-64 rounded-lg flex-shrink-0">
+                                                <div className="skeleton h-32 w-full rounded-t-lg"></div>
+                                                <div className="p-4 space-y-2">
+                                                    <div className="skeleton h-4 w-3/4"></div>
+                                                    <div className="skeleton h-4 w-1/2"></div>
+                                                    <div className="skeleton h-3 w-1/3"></div>
+                                                    <div className="skeleton h-8 w-16 ml-auto"></div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -381,76 +397,76 @@ function Profile() {
                                     )}
                                 </div>
                             ) :
-															activeTab === 'history' ? (
-																<>
-																	<div className="flex-col items-center">
-																					<h3 className="text-2xl gap-2 flex items-center font-semibold text-[#FFD700]"><RiHistoryLine /><span>Reading History</span>
-																					</h3>
-																					{history.length === 0 && (
-																							<p className="text-sm italic text-[#b9b9b9]">
-																								Your reading activity and history will appear here
-																							</p>
-																						)}
-																	</div>
-																	<div className="overflow-x-auto">
-																	{history.length > 0 ? (
-																		<div className="flex gap-4 overflow-x-auto py-4">
-																			{history.map((entry, index) => (
-																				<div
-																					key={index}
-																					className="card card-compact glass w-60 h-64 bg-base-100 shadow-xl flex-shrink-0"
-																				>
-																					<figure className="h-full w-full overflow-hidden">
-																						<img
-																							src={entry.book?.bookImage || "https://via.placeholder.com/150"}
-																							alt={entry.book?.title}
-																							className="object-cover h-full w-full"
-																						/>
-																					</figure>
+                                activeTab === 'history' ? (
+                                    <>
+                                        <div className="flex-col items-center">
+                                                        <h3 className="text-2xl gap-2 flex items-center font-semibold text-[#FFD700]"><GoHistory /><span>Reading History</span>
+                                                        </h3>
+                                                        {history.length === 0 && (
+                                                                <p className="text-sm italic text-[#b9b9b9]">
+                                                                    Your reading activity and history will appear here
+                                                                </p>
+                                                            )}
+                                        </div>
+                                        <div className="overflow-x-auto">
+                                        {history.length > 0 ? (
+                                            <div className="flex gap-4 overflow-x-auto py-4">
+                                                {history.map((entry, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="card card-compact glass w-60 h-64 bg-base-100 shadow-md flex-shrink-0"
+                                                    >
+                                                        <figure className="h-full w-full overflow-hidden">
+                                                            <img
+                                                                src={entry.book?.bookImage || "https://via.placeholder.com/150"}
+                                                                alt={entry.book?.title}
+                                                                className="object-cover h-full w-full"
+                                                            />
+                                                        </figure>
 
-																					<div className="flex flex-col gap-1 p-2">
-																						<h2 className="card-title text-base  text-transparent bg-clip-text bg-gradient-to-r from-gold to-cyan-500 truncate">
-																							{truncate(startCase(entry.book?.title))}
-																						</h2>
-																						<p className="text-sm text-gray-300">
-																							Chapter {entry.lastChapterRead?.chapterNo}:{" "}
-																							{truncate(startCase(entry.lastChapterRead?.title), {length: 25})}
-																						</p>
-																						<p className="text-xs text-[#b9b9b9]">
-																							last read on {formatDate(entry.createdAt)}
-																						</p>
-																						<div className="card-actions justify-end">
-																							<Link
-																								to={`/admin/books/${entry.book?._id}/read?chapterId=${entry.lastChapterRead?._id}`}
-																								className="btn btn-sm btn-outline btn-info"
-																							>
-																								Read
-																							</Link>
-																						</div>
-																					</div>
-																				</div>
-																			))}
-																		</div>
-																	) : (
-																		<div className="flex flex-col items-center justify-center py-10 text-center space-y-4">
-																			<RiBook2Line  className="text-5xl text-gray-500" />
-																			<p className="text-lg">No reading history available</p>
-																			<p className="text-base italic text-[#b9b9b9]">
-																				Books and the last chapter you read will appear here 
-																			</p>
+                                                        <div className="flex flex-col gap-1 p-4">
+                                                            <h2 className="card-title text-base  text-transparent bg-clip-text bg-gradient-to-r from-gold to-cyan-500 truncate">
+                                                                {truncate(startCase(entry.book?.title))}
+                                                            </h2>
+                                                            <p className="text-sm text-gray-300">
+                                                                Chapter {entry.lastChapterRead?.chapterNo}:{" "}
+                                                                {truncate(startCase(entry.lastChapterRead?.title), {length: 25})}
+                                                            </p>
+                                                            <p className="text-xs text-[#b9b9b9]">
+                                                                last read on {formatDate(entry.createdAt)}
+                                                            </p>
+                                                            <div className="card-actions justify-end">
+                                                                <Link
+                                                                    to={`/admin/books/${entry.book?._id}/read?chapterId=${entry.lastChapterRead?._id}`}
+                                                                    className="btn btn-sm btn-outline btn-info"
+                                                                >
+                                                                    Read
+                                                                </Link>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center py-10 text-center space-y-4">
+                                                <RiBook2Line  className="text-5xl text-gray-500" />
+                                                <p className="text-lg">No reading history available</p>
+                                                <p className="text-base italic text-[#b9b9b9]">
+                                                    Books and the last chapter you read will appear here 
+                                                </p>
 
-																			<Link
-																				to="/admin/books"
-																				className="btn btn-sm btn-outline flex items-center gap-2"
-																			>
-																				<GiBookshelf className="text-lg" />
-																				Browse Books
-																			</Link>
-																		</div>
-																	)}
-																</div>
-																</>
-															) : null}
+                                                <Link
+                                                    to="/admin/books"
+                                                    className="btn btn-sm btn-outline flex items-center gap-2"
+                                                >
+                                                    <GiBookshelf className="text-lg" />
+                                                    Browse Books
+                                                </Link>
+                                            </div>
+                                        )}
+                                    </div>
+                                    </>
+                                ) : null}
                         </div>
                     )}
                 </div>
