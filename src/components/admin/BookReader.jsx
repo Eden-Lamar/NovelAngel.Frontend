@@ -3,12 +3,12 @@ import axios from "axios";
 import { startCase } from 'lodash';
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { FaBookOpen, FaLock } from "react-icons/fa";
-import { RiArrowLeftSLine, RiArrowRightSLine } from "react-icons/ri";
+import { RiArrowLeftSLine, RiArrowRightSLine, RiSettings3Line, RiCloseLine  } from "react-icons/ri";
 import 'animate.css';
 import { useAuth } from "../../context/AuthContext";
 
 function BookReader() {
-		const { auth } = useAuth(); // Get auth context for token
+    const { auth } = useAuth(); // Get auth context for token
     const { bookId } = useParams();
     const [searchParams, setSearchParams] = useSearchParams();
     const chapterId = searchParams.get('chapterId');
@@ -17,7 +17,20 @@ function BookReader() {
     const [currentChapterIndex, setCurrentChapterIndex] = useState(-1);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-			console.log("book:", bookChapters, "chapter:", chapterData);
+			// console.log("book:", bookChapters, "chapter:", chapterData);
+
+   // Reading Settings State
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState('text');
+    const [readingSettings, setReadingSettings] = useState({
+        fontSize: 20,
+        fontFamily: 'serif',
+        lineSpacing: 1.6,
+        backgroundGradient: true,
+        textAlignment: 'left',
+        letterSpacing: 0,
+        wordSpacing: 0,
+    });
 
     // Fetch book and chapter details
     useEffect(() => {
@@ -87,6 +100,46 @@ function BookReader() {
         });
     };
 
+		  // Calculate estimated reading time
+    const calculateReadingTime = (content) => {
+        if (!content) return "0 min";
+        
+        const wordsPerMinute = 200; // Average reading speed
+        const words = content.trim().split(/\s+/).length;
+        const minutes = Math.ceil(words / wordsPerMinute);
+        
+        if (minutes < 1) return "Less than 1 min";
+        if (minutes === 1) return "1 min";
+        return `${minutes} mins`;
+    };
+
+
+		// Update reading settings
+    const updateSetting = (key, value) => {
+        setReadingSettings(prev => ({
+            ...prev,
+            [key]: value
+        }));
+    };
+
+		// Generate dynamic styles for chapter content
+    const getContentStyles = () => {
+			const fontFamilyMap = {
+					serif: 'serif',
+					'sans-serif': 'sans-serif',
+					monospace: 'monospace'
+			};
+
+			return {
+            fontSize: `${readingSettings.fontSize}px`,
+            fontFamily: fontFamilyMap[readingSettings.fontFamily],
+            lineHeight: readingSettings.lineSpacing,
+            textAlign: readingSettings.textAlignment,
+            letterSpacing: `${readingSettings.letterSpacing}px`,
+            wordSpacing: `${readingSettings.wordSpacing}px`,
+        };
+    };
+
     return (
         <main className="main-container p-4">
             {/* Error Alert */}
@@ -110,6 +163,187 @@ function BookReader() {
                 </div>
             )}
 
+            {/* Settings Sidebar */}
+            {isSettingsOpen && (
+                <>
+                    {/* Backdrop */}
+                    <div 
+                        className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
+                        onClick={() => setIsSettingsOpen(false)}
+                    />
+                    
+                    {/* Settings Panel */}
+                    <div className="fixed right-0 top-0 h-full w-96 bg-[#1a1b23] border-l border-cyan-500 shadow-lg shadow-cyan-500/20 z-50 transform transition-transform duration-300 ease-in-out">
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-4 border-b border-gray-700">
+                            <h3 className="text-xl font-semibold text-[#FFD700]">Reading Settings</h3>
+                            <button
+                                onClick={() => setIsSettingsOpen(false)}
+                                className="btn btn-ghost btn-sm text-gray-400 hover:text-white"
+                            >
+                                <RiCloseLine className="text-xl" />
+                            </button>
+                        </div>
+
+                        {/* Tabs */}
+                        <div className="flex border-b border-gray-700">
+                            <button
+                                onClick={() => setActiveTab('text')}
+                                className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
+                                    activeTab === 'text' 
+                                        ? 'text-[#FFD700] border-b-2 border-[#FFD700] bg-gray-800' 
+                                        : 'text-gray-400 hover:text-white'
+                                }`}
+                            >
+                                Text
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('appearance')}
+                                className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
+                                    activeTab === 'appearance' 
+                                        ? 'text-[#FFD700] border-b-2 border-[#FFD700] bg-gray-800' 
+                                        : 'text-gray-400 hover:text-white'
+                                }`}
+                            >
+                                Appearance
+                            </button>
+                        </div>
+
+                        {/* Settings Content */}
+                        <div className="p-4 space-y-6 overflow-y-auto" style={{ height: 'calc(100vh - 120px)' }}>
+                            {activeTab === 'text' && (
+                                <>
+                                    {/* Text Size */}
+                                    <div>
+                                        <div className="flex justify-between items-center mb-2">
+                                            <label className="text-sm font-medium text-gray-300">Text Size</label>
+                                            <span className="text-sm text-[#FFD700]">{readingSettings.fontSize}px</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-xs text-gray-500">A</span>
+                                            <input
+                                                type="range"
+                                                min="12"
+                                                max="32"
+                                                value={readingSettings.fontSize}
+                                                onChange={(e) => updateSetting('fontSize', parseInt(e.target.value))}
+                                                className="range range-warning flex-1"
+                                            />
+                                            <span className="text-lg text-gray-500">A</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Font Family */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">Font</label>
+                                        <select
+                                            value={readingSettings.fontFamily}
+                                            onChange={(e) => updateSetting('fontFamily', e.target.value)}
+                                            className="select select-bordered w-full bg-gray-800 border-gray-600 text-white"
+                                        >
+                                            <option value="serif">Serif</option>
+                                            <option value="sans-serif">Sans Serif</option>
+                                            <option value="monospace">Monospace</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Line Spacing */}
+                                    <div>
+                                        <div className="flex justify-between items-center mb-2">
+                                            <label className="text-sm font-medium text-gray-300">Line Spacing</label>
+                                            <span className="text-sm text-[#FFD700]">{readingSettings.lineSpacing}</span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min="1"
+                                            max="3"
+                                            step="0.1"
+                                            value={readingSettings.lineSpacing}
+                                            onChange={(e) => updateSetting('lineSpacing', parseFloat(e.target.value))}
+                                            className="range range-warning w-full"
+                                        />
+                                    </div>
+
+                                      {/* Background Gradient */}
+                                    <div>
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-sm font-medium text-gray-300">Background Gradient</label>
+                                            <input
+                                                type="checkbox"
+                                                checked={readingSettings.backgroundGradient}
+                                                onChange={(e) => updateSetting('backgroundGradient', e.target.checked)}
+                                                className="toggle toggle-warning"
+                                            />
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-1">Enable striped gradient background</p>
+                                    </div>
+
+                                    {/* Text Alignment */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-3">Text Alignment</label>
+                                        <div className="flex gap-2">
+                                            {['left', 'center', 'justify'].map((align) => (
+                                                <button
+                                                    key={align}
+                                                    onClick={() => updateSetting('textAlignment', align)}
+                                                    className={`btn btn-sm flex-1 ${
+                                                        readingSettings.textAlignment === align
+                                                            ? 'btn-warning text-black'
+                                                            : 'btn-outline btn-warning'
+                                                    }`}
+                                                >
+                                                    {startCase(align)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Letter Spacing */}
+                                    <div>
+                                        <div className="flex justify-between items-center mb-2">
+                                            <label className="text-sm font-medium text-gray-300">Letter Spacing</label>
+                                            <span className="text-sm text-[#FFD700]">{readingSettings.letterSpacing}px</span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min="-2"
+                                            max="5"
+                                            step="0.5"
+                                            value={readingSettings.letterSpacing}
+                                            onChange={(e) => updateSetting('letterSpacing', parseFloat(e.target.value))}
+                                            className="range range-warning w-full"
+                                        />
+                                    </div>
+
+                                    {/* Word Spacing */}
+                                    <div>
+                                        <div className="flex justify-between items-center mb-2">
+                                            <label className="text-sm font-medium text-gray-300">Word Spacing</label>
+                                            <span className="text-sm text-[#FFD700]">{readingSettings.wordSpacing}px</span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min="-2"
+                                            max="10"
+                                            step="0.5"
+                                            value={readingSettings.wordSpacing}
+                                            onChange={(e) => updateSetting('wordSpacing', parseFloat(e.target.value))}
+                                            className="range range-warning w-full"
+                                        />
+                                    </div>
+                                </>
+                            )}
+
+                            {activeTab === 'appearance' && (
+                                <div className="text-center text-gray-500 py-8">
+                                    <p>Appearance settings coming soon...</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </>
+            )}
+
             <div className="flex flex-col gap-6">
                 {/* Header */}
                 {loading ? (
@@ -118,18 +352,27 @@ function BookReader() {
                         <div className="skeleton h-10 w-24"></div>
                     </div>
                 ) : chapterData ? (
-                    <div className="group">
-											<Link to={`/admin/books/${bookId}`} className="flex items-center">
+                    <div className="flex justify-between items-center border border-gray-800 p-4 rounded-xl">
+											<Link to={`/admin/books/${bookId}`} className="flex items-center group">
 												<RiArrowLeftSLine className="text-[#FFD700] text-2xl mt-1 group-hover:mr-2 transition-all duration-200" />
                         <h2 className="text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-gold to-cyan-500">
                             {startCase(chapterData.bookTitle)}
                         </h2>
 											</Link>
+
+											  {/* Settings Icon */}
+                        <button
+                            onClick={() => setIsSettingsOpen(true)}
+                            className="btn btn-ghost btn-sm text-[#FFD700] hover:text-white hover:bg-gray-700 transition-colors"
+                            title="Reading Settings"
+                        >
+                            <RiSettings3Line className="text-xl" />
+                        </button>
                     </div>
                 ) : null}
 
                 {/* Chapter Content */}
-                <div className="card w-full p-4 border border-blue-500 shadow-md shadow-cyan-500/50 bg-custom-striped">
+                <div className={`card w-full p-4 border border-blue-500 shadow-md shadow-cyan-500/50 ${readingSettings.backgroundGradient ? 'bg-custom-striped' : 'bg-gray-800'}`}>
                     {loading ? (
                         <div className="card-body p-4">
                             <div className="skeleton h-6 w-1/2 mb-2"></div>
@@ -157,15 +400,23 @@ function BookReader() {
                             <p className="text-sm text-[#b9b9b9]">
                                 Released: {formatDate(chapterData.chapter.createdAt)}
                             </p>
+														<p className="text-sm text-[#b9b9b9] flex items-center gap-1">
+                                <span>📖</span>
+                                Estimated reading time: {calculateReadingTime(chapterData.chapter.content)}
+                            </p>
+
                             {chapterData.chapter.isLocked ? (
                                 <div className="mt-4 text-center text-red-500">
                                     <FaLock className="inline-block text-2xl mb-2" />
                                     <p>This chapter is locked. Please unlock to continue reading.</p>
                                 </div>
                             ) : (
-                                <p className="text-white text-xl mt-4 whitespace-pre-wrap">
+                                <div 
+                                    className="text-white mt-4 whitespace-pre-wrap"
+                                    style={getContentStyles()}
+                                >
                                     {chapterData.chapter.content}
-                                </p>
+                                </div>
                             )}
                             <div className="flex justify-between mt-4">
                                 <button
@@ -189,7 +440,7 @@ function BookReader() {
                     ) : null}
                 </div>
             </div>
-        </main>
+				</main>
     );
 }
 
