@@ -17,6 +17,7 @@ const bookSchema = yup.object().shape({
   author: yup.string().required("Author is required").min(3, 'Too Short!').max(50, 'Too Long!'),
   description: yup.string().required("Description is required").min(20, 'Too Short!').max(1000, 'Too Long!'),
   category: yup.string().required("Category is required"),
+  country: yup.string().required("Country is required"),
   tags: yup.string().required("Tags are required"),
   bookImage: yup
     .mixed()
@@ -45,6 +46,7 @@ function CreateBook() {
       author: "",
       description: "",
       category: "",
+      country: "",
       tags: "Action",
       bookImage: null,
     },
@@ -67,9 +69,10 @@ function CreateBook() {
     formData.append("author", data.author);
     formData.append("description", data.description);
     formData.append("category", data.category);
+    formData.append("country", data.country)
     formData.append("tags", data.tags); // Already a comma-separated string
     formData.append("bookImage", data.bookImage[0]); // Send file
-   
+
     try {
       const response = await axios.post(
         "http://localhost:3000/api/v1/admin/books",
@@ -181,12 +184,23 @@ function CreateBook() {
           <label htmlFor="category" className="block mb-1 font-semibold">Category</label>
           <select {...register("category")} className="w-full p-2 border rounded text-black outline-none bg-slate-200">
             <option value="">Select category</option>
-            <option value="Translation">Translation</option>
-            <option value="Original stories">Original stories</option>
-            <option value="Fanfiction">Fanfiction</option>
+            <option value="BL">BL</option>
+            <option value="GL">GL</option>
+            <option value="BG">BG</option>
           </select>
           {errors.category && <p className="text-red-500">{errors.category.message}</p>}
         </div>
+
+        <div>
+        <label htmlFor="country" className="block mb-1 font-semibold">Country</label>
+        <select {...register("country")} className="w-full p-2 border rounded text-black outline-none bg-slate-200">
+          <option value="">Select country</option>
+          <option value="Chinese">Chinese</option>
+          <option value="Japanese">Japanese</option>
+          <option value="South Korean">South Korean</option>
+        </select>
+        {errors.country && <p className="text-red-500">{errors.country.message}</p>}
+      </div>
 
         <div>
           <label htmlFor="tags" className="block mb-1 font-semibold">Tags</label>
