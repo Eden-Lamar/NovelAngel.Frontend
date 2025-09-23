@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { startCase, truncate, capitalize } from 'lodash';
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { FaHeart, FaRegEye, FaBookOpen, FaBookReader, FaLock, FaEdit } from "react-icons/fa";
-import { RiArrowDownWideFill  } from "react-icons/ri";
+import { FaHeart, FaRegEye, FaBookOpen, FaBookReader, FaLock, FaEdit, FaBookmark } from "react-icons/fa";
+import { RiArrowDownWideFill, RiStickyNoteAddFill } from "react-icons/ri";
 import { LuTrash2 } from "react-icons/lu";
 // import { PiBooksDuotone } from "react-icons/pi";
 // import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import { useAuth } from "../../context/AuthContext";
+import { getCountryFlagCode } from "../../helperFunction";
 
 function BookDetails() {
     const { id } = useParams();
@@ -19,15 +20,35 @@ function BookDetails() {
     const [error, setError] = useState(null);
     const [showFullDescription, setShowFullDescription] = useState(false);
     const [activeTab, setActiveTab] = useState('summary');
+		const [isLiked, setIsLiked] = useState(false);
+    const [isBookmarked, setIsBookmarked] = useState(false);
+    const [likeLoading, setLikeLoading] = useState(false);
+    const [bookmarkLoading, setBookmarkLoading] = useState(false);
+    const [prevLikeCount, setPrevLikeCount] = useState(null); // Stores prevIsLiked and prevCount to revert on failure.
 
-    // Fetch book details
+    // Fetch book details and like/bookmark status
     useEffect(() => {
         const fetchBook = async () => {
             setLoading(true);
             try {
-                const response = await axios.get(`http://localhost:3000/api/v1/books/${id}`);
-                console.log("Book details response:", response.data);
-                setBook(response.data.data);
+                const [bookResponse, likeResponse, bookmarkResponse] = await Promise.all([
+                    axios.get(`http://localhost:3000/api/v1/books/${id}`),
+                    auth?.token
+                        ? axios.get(`http://localhost:3000/api/v1/books/${id}/like-status`, {
+														headers: { Authorization: `Bearer ${auth?.token}` }
+                          })
+                        : Promise.resolve({ data: { isLiked: false } }),
+                    auth?.token
+                        ? axios.get(`http://localhost:3000/api/v1/books/${id}/bookmark-status`, {
+                              headers: { Authorization: `Bearer ${auth?.token}` }
+                          })
+                        : Promise.resolve({ data: { isBookmarked: false } })
+                ]);
+                console.log("Book details response:", bookResponse.data);
+                setBook(bookResponse.data.data);
+                setIsLiked(likeResponse.data.isLiked);
+                setIsBookmarked(bookmarkResponse.data.isBookmarked);
+                setPrevLikeCount(bookResponse.data.data.likeCount);
                 setError(null);
             } catch (err) {
                 const errorMessage = err.response?.data?.message || "Failed to load book details.";
@@ -38,15 +59,76 @@ function BookDetails() {
             }
         };
         fetchBook();
-    }, [id]);
-
+    }, [id, auth?.token]);
+				
     // Clear error after 10 seconds
     useEffect(() => {
-        if (error) {
-            const timer = setTimeout(() => setError(null), 10000);
-            return () => clearTimeout(timer);
-        }
+			if (error) {
+				const timer = setTimeout(() => setError(null), 10000);
+				return () => clearTimeout(timer);
+			}
     }, [error]);
+		
+		
+		// Toggle Like
+		const handleToggleLike = async () => {
+			if (!auth?.token) {
+            setError("Please log in to like this book.");
+            navigate('/login', { state: { from: `/admin/books/${id}` } });
+            return;
+        }
+        setLikeLoading(true);
+        const prevIsLiked = isLiked;
+        const prevCount = book.likeCount;
+        // Optimistic update
+        setIsLiked(!isLiked);
+        setBook((prev) => ({
+            ...prev,
+            likeCount: isLiked ? prev.likeCount - 1 : prev.likeCount + 1
+			}));
+
+			try {
+				const response = await axios.post(
+					`http://localhost:3000/api/v1/books/${id}/toggle-like`,
+					{},
+					{ headers: { Authorization: `Bearer ${auth?.token}` } }
+				);
+					setError(null);
+					setPrevLikeCount(response.data.likeCount);
+			}  catch (err) {
+					// Revert on failure
+					setIsLiked(prevIsLiked);
+					setBook((prev) => ({ ...prev, likeCount: prevCount }));
+					setError(err.response?.data?.error || "Failed to toggle like.");
+        } finally {
+					setLikeLoading(false);
+        }
+		};
+		
+		// Toggle Bookmark
+		const handleToggleBookmark = async () => {
+			if (!auth?.token) {
+            setError("Please log in to bookmark this book.");
+            navigate('/login', { state: { from: `/admin/books/${id}` } });
+            return;
+        }
+        setBookmarkLoading(true);
+        const prevIsBookmarked = isBookmarked;
+        setIsBookmarked(!isBookmarked);
+        try {
+            await axios.post(
+                `http://localhost:3000/api/v1/books/${id}/toggle-bookmark`,
+                {},
+                { headers: { Authorization:  `Bearer ${auth?.token}` } }
+            );
+            setError(null);
+        } catch (err) {
+            setIsBookmarked(prevIsBookmarked);
+            setError(err.response?.data?.error || "Failed to toggle bookmark.");
+        } finally {
+            setBookmarkLoading(false);
+        }
+		};
 
 		// Delete book
 		const handleDelete = async () => {
@@ -134,8 +216,8 @@ function BookDetails() {
                                 />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-transparent to-transparent bg-opacity-100"></div>
 
-                                {/* Badge for book status */}
-                            <div className={`absolute top-2 left-2 text-white text-sm rounded-full px-2 py-1 ${ book.status === 'ongoing' ? 'bg-yellow-500' : 'bg-green-500'}`}>
+														{/* Badge for book status */}
+                            <div className={`absolute top-2 left-2 text-white text-sm font-medium rounded-full px-2 py-1 ${ book.status === 'ongoing' ? 'bg-yellow-500' : 'bg-green-500'}`}>
                                 {capitalize(book.status)}
                             </div>
                                 
@@ -215,7 +297,23 @@ function BookDetails() {
 
                             <div>
 
-                                <div className="card-actions justify-end mt-2">
+												<div className="card-actions mt-2 flex items-center justify-between">
+													{/* Country Flag */}
+													{book.country && (
+														<div className="w-8 h-8">
+															<img
+																src={`https://hatscripts.github.io/circle-flags/flags/${getCountryFlagCode(book.country)}.svg`}
+																alt={`${book.country} flag`}
+																className="w-full h-full object-cover rounded-full"
+																onError={(e) => {
+																	e.target.src =
+																		'https://hatscripts.github.io/circle-flags/flags/un.svg';
+																}}
+															/>
+														</div>
+													)}
+
+                        {/* Start Reading button */}
                                     <Link to={`/admin/books/${book._id}/read`} className="btn btn-outline btn-info flex items-center">
                                         <FaBookOpen className="mr-2" /> Start Reading
                                     </Link>
@@ -223,6 +321,35 @@ function BookDetails() {
                             </div>
                         </div>
                     ) : null}
+
+										<div className="card-actions justify-between mt-2">
+                                <button
+                                    className={`btn btn-outline ${isBookmarked ? 'btn-success' : 'btn'}  flex items-center whitespace-nowrap animate__animated ${bookmarkLoading ? '' : 'animate__pulse'}`}
+                                    onClick={handleToggleBookmark}
+                                    disabled={bookmarkLoading || !auth?.token}
+                                    aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
+                                >
+                                    {bookmarkLoading ? (
+                                        <span className="loading loading-spinner"></span>
+                                    ) : (
+                                        <FaBookmark className="" />
+                                    )}
+                                    {isBookmarked ? "Bookmarked" : "Bookmark"}
+                                </button>
+                                <button
+                                    className={`btn btn-outline ${isLiked ? 'btn-error' : 'btn'} btn flex items-center whitespace-nowrap animate__animated ${likeLoading ? '' : 'animate__pulse'}`}
+                                    onClick={handleToggleLike}
+                                    disabled={likeLoading || !auth?.token}
+                                    aria-label={isLiked ? "Unlike book" : "Like book"}
+                                >
+                                    {likeLoading ? (
+																			<span className="loading loading-spinner"></span>
+                                    ) : (
+                                        <FaHeart className="" />
+                                    )}
+                                    {isLiked ? `Liked` : `Like`}
+                                </button>
+                            </div>
                 </div>
 
                 {/* Right Div: Title and Tabs */}
@@ -330,34 +457,53 @@ function BookDetails() {
                                 )}
                                 {activeTab === 'chapters' && (
                                     <div className="overflow-x-auto mt-4 border-[1px] border-gray-700 rounded-lg">
-                                        <table className="table  w-full">
+                                        <table className="table w-full table-fixed">
                                             <thead className="text-white text-lg font-semibold">
                                                 <tr>
-                                                    <th>Chapters</th>
+                                                    <th className="w-full">Chapters</th>
                                                     <th></th>
-                                                    <th></th>
+                                                    <th className="w-1/2 text-right">
+																											<Link
+																													to={`/admin/add-chapter/${book._id}`}
+																													className="btn btn-outline btn-success btn-sm flex "
+																												>
+																													<RiStickyNoteAddFill className="" />
+																													<span className="hidden sm:inline">Add Chapter</span>
+                                                          <span className="sm:hidden">Add</span>
+																												</Link>
+																										</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="text-white text-base font-medium">
                                                 {book.chapters.map((chapter) => (
                                                     <tr key={chapter._id}>
                                                         <td className="flex items-center gap-2">
-                                                            <div className={`flex items-center justify-center w-8 h-8 border-2 ${chapter.isLocked ? 'border-red-500 shadow-lg shadow-red-500/50' : 'border-cyan-500 shadow-lg shadow-cyan-500/50'} rounded-full`}>
-                                                                {chapter.isLocked ? (
-                                                                    <FaLock className="text-red-500 text-sm" />
-                                                                ) : (
-                                                                    <FaBookReader className="text-blue-500 text-sm" />
-                                                                )}
-                                                            </div>
+																													<div className="flex items-start gap-3">
+                                                                {/* circular icon container */}
+                                                                <div className={`flex-shrink-0 flex items-center justify-center w-8 h-8 min-w-[2rem] min-h-[2rem] border-2 ${chapter.isLocked ? 'border-red-500 shadow-lg shadow-red-500/50' : 'border-cyan-500 shadow-lg shadow-cyan-500/50'} rounded-full`}>
+                                                                    {chapter.isLocked ? (
+                                                                        <FaLock className="text-red-500 text-sm" />
+                                                                    ) : (
+                                                                        <FaBookReader className="text-blue-500 text-sm" />
+                                                                    )}
+                                                                </div>
 
-                                                            <div className="ml-2">
-                                                                Chapter {chapter.chapterNo}: {startCase(chapter.title)} <br /> 
-                                                                <span className="text-sm font-light">Released: </span>
-                                                                <span className="text-xs text-[#b9b9b9] font-normal">{formatDate(chapter.createdAt).fullDate}</span>
+                                                                {/* Chapter info with proper text wrapping */}
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="font-medium text-white break-words">
+                                                                        Chapter {chapter.chapterNo}: {startCase(chapter.title)}
+                                                                    </div>
+                                                                    <div className="text-sm font-light mt-1">
+                                                                        <span className="text-gray-300">Released: </span>
+                                                                        <span className="text-xs text-[#b9b9b9] font-normal">
+                                                                            {formatDate(chapter.createdAt).fullDate}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </td>
                                                         <td></td>
-                                                        <td>
+                                                        <td className="flex justify-end">
                                                             <Link
                                                                 to={`/admin/books/${book._id}/read?chapterId=${chapter._id}`}
                                                                 className="btn btn-outline btn-info btn-sm"
