@@ -6,7 +6,7 @@ import * as yup from "yup";
 import axios from "axios";
 import { CiLock, CiUnlock  } from "react-icons/ci";
 import { useAuth } from "../../context/AuthContext";
-import {CapitalizeFirstLetter } from "../../helperFunction";
+import { startCase, truncate, capitalize } from 'lodash';
 
 // Define validation schema with Yup
 const chapterSchema = yup.object().shape({
@@ -203,20 +203,23 @@ function AddChapter() {
         {/* Display book details */}
         {!fetchLoading && book && (
           <div className="w-2/5">        
-            <div className="card bg-base-50 image-full shadow-xl w-2/3 h-2/6 overflow-hidden group">
-              <figure className="relative overflow-hidden">
+            <div className="relative shadow-xl w-2/3 overflow-hidden group">
+              <div className="overflow-hidden aspect-[3/4] w-full rounded-xl">
                 <img
                   src={book.bookImage}
                   alt={book.title}
-                  className="object-cover h-48 w-full transform transition-transform duration-300 ease-in-out group-hover:scale-110"
+                  className="object-cover h-full w-full transform transition-transform duration-300 ease-in-out rounded-xl group-hover:scale-105"
                 />
-              </figure>
-              <div className="card-body">
-                <h2 className="card-title text-white">{CapitalizeFirstLetter(book.title)}</h2>
+              </div>
+              	{/* Background overlay */}
+              <div className="absolute inset-0 bg-black opacity-40 rounded-xl"></div>
+              <div className="absolute inset-0 flex flex-col p-4">
+                <h2 className="card-title text-white text-base font-medium group-hover:text-transparent bg-clip-text bg-gradient-to-r from-gold to-cyan-500">{truncate(startCase(book.title))}</h2>
                 <p className="text-white">Chapter {chapterCount + 1}</p>
               </div>
             </div>
 
+              
             {/* Display chapter table */}
             {chapters.length > 0 ? (
               <div className="overflow-x-auto mt-10">
@@ -232,7 +235,7 @@ function AddChapter() {
                     {chapters.map((chapter) => (
                       <tr key={chapter._id}>
                         <th  className="py-4 text-base">{chapter.chapterNo}</th>
-                        <td  className="py-4 text-base">{CapitalizeFirstLetter(chapter.title)}</td>
+                        <td  className="py-4 text-base">{capitalize(chapter.title)}</td>
                         <td  className="py-4 text-base">
                           <div className="lg:tooltip" data-tip={chapter.isLocked ? "Locked" : "Free"}>
                             {chapter.isLocked ? (
