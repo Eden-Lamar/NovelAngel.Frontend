@@ -23,7 +23,7 @@ function Profile() {
     const [activeTab, setActiveTab] = useState('profile');
     const [previewUrl, setPreviewUrl] = useState(null);
 
-    const DEFAULT_AVATAR = "https://robohash.org/default?set=set5"; 
+    const DEFAULT_AVATAR = "https://robohash.org/default?set=set4"; 
     // you can also use: https://api.dicebear.com/6.x/initials/svg?seed=User
 
 
