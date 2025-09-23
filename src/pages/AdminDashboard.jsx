@@ -7,6 +7,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { startCase, truncate } from 'lodash';
 import { useAuth } from "../context/AuthContext";
+import { getCountryFlagCode } from "../helperFunction";
 
 
 function AdminDashboard() {
@@ -21,6 +22,7 @@ function AdminDashboard() {
     const [booksError, setBooksError] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
 
      // Fetch dashboard stats
     useEffect(() => {
@@ -190,10 +192,31 @@ function AdminDashboard() {
                                         className="object-cover h-full w-full transform transition-transform duration-300 ease-in-out rounded-xl group-hover:scale-105"
                                     />
                                 </div>
-                                 <div className="absolute inset-0 bg-black opacity-50 rounded-xl"></div> {/* Background overlay */}
-                                <div className="absolute inset-0 flex flex-col justify-start p-4">
+																{/* Background overlay */}
+																<div className="absolute inset-0 bg-black opacity-50 rounded-xl"></div> 
+                                <div className="absolute inset-0 flex flex-col p-4">
+																	<div className="">
                                     <h2 className="card-title text-white text-base font-medium group-hover:text-transparent bg-clip-text bg-gradient-to-r from-gold to-cyan-500">{truncate(startCase(book.title))}</h2>
-                                    <p className="text-white text-sm font-medium">{book.chapters.length} {book.chapters.length > 1 ? "Chapters" : "Chapter"}</p>
+                                    <p className="text-gray-200 text-sm">{book.chapters.length} {book.chapters.length > 1 ? "Chapters" : "Chapter"}</p>
+																	</div>
+
+																		{/* Country Flag */}
+                                    {book.country && (
+                                        <div className="flex items-center mt-auto">
+                                            <div className="w-6 h-6 shadow-sm">
+                                                <img
+                                                    src={`https://hatscripts.github.io/circle-flags/flags/${getCountryFlagCode(book.country)}.svg`}
+                                                    alt={`${book.country} flag`}
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => {
+                                                        // Fallback to UN flag if flag fails to load
+                                                        e.target.src = 'https://hatscripts.github.io/circle-flags/flags/un.svg';
+                                                    }}
+                                                />
+                                            </div>
+                                            
+																			</div>
+                                    )}
                                 </div>
                             </Link>
                         ))
