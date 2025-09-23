@@ -324,7 +324,7 @@ function BookDetails() {
 
 										<div className="card-actions justify-between mt-2">
                                 <button
-                                    className={`btn btn-outline ${isBookmarked ? 'btn-success' : 'btn'}  flex items-center whitespace-nowrap animate__animated ${bookmarkLoading ? '' : 'animate__pulse'}`}
+                                    className={`btn  ${isBookmarked ? 'btn-success' : 'btn-outline'}  flex items-center whitespace-nowrap animate__animated ${bookmarkLoading ? '' : 'animate__pulse'}`}
                                     onClick={handleToggleBookmark}
                                     disabled={bookmarkLoading || !auth?.token}
                                     aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
