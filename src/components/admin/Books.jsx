@@ -8,6 +8,8 @@ import { Link } from "react-router-dom";
 import { BiBookContent } from "react-icons/bi";
 import 'tippy.js/dist/tippy.css';
 import { useAuth } from "../../context/AuthContext";
+import { getCountryFlagCode } from "../../helperFunction";
+
 
 function Books() {
     const { auth } = useAuth();
@@ -125,7 +127,7 @@ function Books() {
                     ))
                 ) :(
                     books.map((book) => (
-                        <Link to={`/admin/books/${book._id}`} key={book._id} className="card card-side bg-base-100 shadow-xl glass group w-full h-60">
+                        <div key={book._id} className="card card-side bg-base-100 shadow-xl glass group w-full h-60">
                             <figure className="relative overflow-hidden w-1/2 rounded-e-xl">
                                 <img
                                     src={book.bookImage || 'https://via.placeholder.com/300x200'}
@@ -158,13 +160,29 @@ function Books() {
                                         <LuTrash2 />
                                     </button>
                                 </div>
+
+                                 {/* Country Flag (bottom-left) */}
+                                {book.country && (
+                                    <div className="absolute bottom-2 left-2 w-6 h-6 shadow-sm">
+                                    <img
+                                        src={`https://hatscripts.github.io/circle-flags/flags/${getCountryFlagCode(book.country)}.svg`}
+                                        alt={`${book.country} flag`}
+                                        className="w-full h-full object-cover rounded-full"
+                                        onError={(e) => {
+                                        e.target.src = 'https://hatscripts.github.io/circle-flags/flags/un.svg';
+                                        }}
+                                    />
+                                    </div>
+                                )}
                             </figure>
                             <div className="card-body p-3 w-1/2 flex flex-col justify-between">
                                 <div className="">
                                     <Tippy content={startCase(book.title)} placement="top" arrow={false}>
-                                        <h2 className="card-title text-base text-white cursor-pointer group-hover:text-transparent bg-clip-text bg-gradient-to-r from-gold to-cyan-500">
-                                            {truncate(startCase(book.title))}
-                                        </h2>
+                                        <Link to={`/admin/books/${book._id}`}>
+                                            <h2 className="card-title text-base text-white cursor-pointer group-hover:text-transparent bg-clip-text bg-gradient-to-r from-gold to-cyan-500">
+                                                {truncate(startCase(book.title))}
+                                            </h2>
+                                        </Link>
                                     </Tippy>
                                 </div>
                                 <div className="text-xs max-w-full h-28 text-gray-300">
@@ -185,7 +203,7 @@ function Books() {
                                     </div>    
                                 
                             </div>
-                        </Link>
+                        </div>
                     ))
                 )}
             </div>
