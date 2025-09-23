@@ -3,11 +3,13 @@ import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { Select } from "antd";
-import "antd/dist/reset.css";
 import axios from "axios";
-import { useAuth } from "../../context/AuthContext";
+import { capitalize } from 'lodash';
 import { useNavigate, useParams } from "react-router-dom";
 import { FiUpload } from "react-icons/fi";
+import { useAuth } from "../../context/AuthContext";
+import { getCountryFlagCode } from "../../helperFunction";
+import "antd/dist/reset.css";
 
 const { Option } = Select;
 
@@ -16,6 +18,7 @@ const bookSchema = yup.object().shape({
   author: yup.string().required("Author is required").min(3, "Too Short!").max(50, "Too Long!"),
   description: yup.string().required("Description is required").min(20, "Too Short!").max(1000, "Too Long!"),
   category: yup.string().required("Category is required"),
+  country: yup.string().required("Country is required"),
   tags: yup.string().required("Tags are required"),
   status: yup.string().required("Status is required"),
   bookImage: yup
@@ -47,6 +50,7 @@ function EditBook() {
       author: "",
       description: "",
       category: "",
+      country: "",
       tags: "Action",
       status: "ongoing",
       bookImage: null,
@@ -55,6 +59,9 @@ function EditBook() {
 
   const { onChange: bookImageOnChange, ...bookImageProps } = register("bookImage"); // Extract and rename for clarity
   const bookImage = watch("bookImage"); // Watch bookImage field for changes
+  const currentStatus = watch("status"); // Watch status for toggle
+  const currentCountry = watch("country"); // Watch country for flag display
+
 
   // Fetch book data
   useEffect(() => {
@@ -67,6 +74,7 @@ function EditBook() {
         setValue("author", book.author);
         setValue("description", book.description);
         setValue("category", book.category);
+        setValue("country", book.country || "");
         setValue("tags", book.tags.join(","));
         setValue("status", book.status);
       
@@ -78,6 +86,7 @@ function EditBook() {
           author: book.author,
           description: book.description,
           category: book.category,
+          country: book.country || "",
           tags: book.tags.join(","),
           status: book.status,
           bookImage: book.bookImage || null,
@@ -121,7 +130,7 @@ function EditBook() {
       const timer = setTimeout(() => {
         setError(null);
         setSuccess(null);
-      }, 5000);
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, [error, success]);
@@ -135,6 +144,11 @@ function EditBook() {
 
   const isFormChanged = isDirty || hasImageChange();
 
+  const handleStatusToggle = (e) => {
+    const newStatus = e.target.checked ? "completed" : "ongoing";
+    setValue("status", newStatus, { shouldDirty: true });
+  };
+
   const onSubmit = async (data) => {
     setLoading(true);
 		const formData = new FormData(); // ⬅️ create fresh instance here
@@ -143,6 +157,7 @@ function EditBook() {
     formData.append("author", data.author);
     formData.append("description", data.description);
     formData.append("category", data.category);
+    formData.append("country", data.country);
 
     if (data.tags) {
 		// backend expects stringified array in your code
@@ -178,6 +193,7 @@ function EditBook() {
 			setValue("author", updated.author);
 			setValue("description", updated.description);
 			setValue("category", updated.category);
+      setValue("country", updated.country || "");
 			setValue("tags", updated.tags.join(","));
 			setValue("status", updated.status);
 
@@ -189,13 +205,14 @@ function EditBook() {
         author: updated.author,
         description: updated.description,
         category: updated.category,
+        country: updated.country || "",
         tags: updated.tags.join(","),
         status: updated.status,
         bookImage: updated.bookImage || null,
       });
 
 			// Redirect after a short delay
-			setTimeout(() => navigate(`/admin/books/${bookId}`), 6000);
+			setTimeout(() => navigate(`/admin/books/${bookId}`), 3000);
     } catch (err) {
       setError(err.response?.data?.error || "Failed to update book.");
       setSuccess(null);
@@ -250,7 +267,7 @@ function EditBook() {
 
       <h2 className="text-2xl font-bold mb-4 text-[#FFD700]">Edit Book</h2>
       {fetchLoading ? (
-        <div className="space-y-6">
+      <div className="space-y-6">
           {/* Image and Fields Side by Side */}
           <div className="grid grid-cols-3 gap-6">
             {/* Image Column - 1 column */}
@@ -276,12 +293,18 @@ function EditBook() {
                   <div className="skeleton h-10 w-full rounded-xl"></div>
                 </div>
               </div>
-              {/* Tags */}
-              <div>
-                <div className="skeleton h-4 w-16 mb-1"></div>
-                <div className="skeleton h-10 w-full rounded-xl"></div>
+              {/* Country and Status (2-column grid) */}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <div className="skeleton h-4 w-16 mb-1"></div>
+                  <div className="skeleton h-10 w-full rounded-xl"></div>
+                </div>
+                <div>
+                  <div className="skeleton h-4 w-16 mb-1"></div>
+                  <div className="skeleton h-10 w-full rounded-xl"></div>
+                </div>
               </div>
-              {/* Status */}
+              {/* Tags */}
               <div>
                 <div className="skeleton h-4 w-16 mb-1"></div>
                 <div className="skeleton h-10 w-full rounded-xl"></div>
@@ -312,7 +335,29 @@ function EditBook() {
                 className="object-cover w-full h-full transform transition-transform duration-300 ease-in-out group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-transparent to-transparent bg-opacity-100"></div>
+                
+               {/* Status Badge */}
+              <div className={`absolute top-2 left-2 text-white text-sm font-medium rounded-full px-2 py-1 ${currentStatus === 'ongoing' ? 'bg-yellow-500' : 'bg-green-500'}`}>
+                {capitalize(currentStatus)}
+              </div>
 
+              {/* Country Flag */}
+              {currentCountry && (
+                <div className="absolute bottom-3 left-4">
+                  <div className="w-8 h-8 shadow-sm">
+                    <img
+                      src={`https://hatscripts.github.io/circle-flags/flags/${getCountryFlagCode(currentCountry)}.svg`}
+                      alt={`${currentCountry} flag`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src = 'https://hatscripts.github.io/circle-flags/flags/un.svg';
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Upload Button */}
               <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex justify-between items-center gap-2 bg-cyan-800/80 p-4 h-5 rounded-full">
                 <input
                   type="file"
@@ -368,11 +413,43 @@ function EditBook() {
               <label htmlFor="category" className="block mb-1 font-semibold text-white text-sm">Category</label>
               <select {...register("category")} className="w-full p-2 rounded-xl text-white outline-none focus:outline-[#FFD700] bg-[#090a0b]">
                 <option value="">Select category</option>
-                <option value="Translation">Translation</option>
-                <option value="Original stories">Original stories</option>
-                <option value="Fanfiction">Fanfiction</option>
+                <option value="BL">BL</option>
+                <option value="GL">GL</option>
+                <option value="BG">BG</option>
               </select>
               {errors.category && <p className="text-red-500">{errors.category.message}</p>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label htmlFor="country" className="block mb-1 font-semibold text-white text-sm">Country</label>
+              <select {...register("country")} className="w-full p-2 rounded-xl text-white outline-none focus:outline-[#FFD700] bg-[#090a0b]">
+                <option value="">Select country</option>
+                <option value="Chinese">Chinese</option>
+                <option value="Japanese">Japanese</option>
+                <option value="South Korean">South Korean</option>
+              </select>
+              {errors.country && <p className="text-red-500">{errors.country.message}</p>}
+            </div>
+            
+            <div>
+              <label htmlFor="status" className="block mb-1 font-semibold text-white text-sm">Status</label>
+              <div className="flex items-center gap-3 p-2">
+                <span className={`text-base ${currentStatus === 'ongoing' ? 'text-yellow-400' : 'text-gray-400'}`}>
+                  Ongoing
+                </span>
+                <input
+                  type="checkbox"
+                  checked={currentStatus === 'completed'}
+                  onChange={handleStatusToggle}
+                  className={`toggle ${currentStatus === 'completed' ? 'toggle-success' : 'toggle-warning'}`}
+                />
+                <span className={`text-base ${currentStatus === 'completed' ? 'text-green-400' : 'text-gray-400'}`}>
+                  Completed
+                </span>
+              </div>
+              {errors.status && <p className="text-red-500">{errors.status.message}</p>}
             </div>
           </div>
           
@@ -402,15 +479,7 @@ function EditBook() {
             />
             {errors.tags && <p className="text-red-500">{errors.tags.message}</p>}
           </div>
-          
-          <div>
-            <label htmlFor="status" className="block mb-1 font-semibold text-white text-sm">Status</label>
-            <select {...register("status")} className="w-full p-2 rounded-xl text-white outline-none focus:outline-[#FFD700] bg-[#090a0b]">
-              <option value="ongoing">Ongoing</option>
-              <option value="completed">Completed</option>
-            </select>
-            {errors.status && <p className="text-red-500">{errors.status.message}</p>}
-          </div>
+
           
           <div>
             <label htmlFor="description" className="block mb-1 font-semibold text-white text-sm">Description</label>
