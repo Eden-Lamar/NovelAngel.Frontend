@@ -28,7 +28,7 @@
 		'sidebar header header header'
 		'sidebar main main main';
 	height: 100vh;
-	background-color: #1d2634;
+	background-color: #1a1b23;
 }
 
 /* Header  */
@@ -46,7 +46,7 @@
 #sidebar {
 	grid-area: sidebar;
 	height: 100%;
-	background-color: #263043;
+	background-color: #0f1419;
 	overflow-y: auto;
 	transition: all 0.5s;
 	-webkit-transition: all 0.5s;
