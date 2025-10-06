@@ -160,7 +160,7 @@ function AdminDashboard() {
         {/* Recent Books Section */}
             <div className="mt-10">
                 <h3 className="text-xl font-bold mb-4">Recent Books</h3>
-                <div className="flex flex-row gap-4 overflow-x-auto scrollbar-hidden">
+                <div className="flex flex-row gap-4 overflow-x-auto p-2">
                     {loading ? (
                         Array(6).fill().map((_, index) => (
                             <div
