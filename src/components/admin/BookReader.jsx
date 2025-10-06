@@ -4,6 +4,8 @@ import { startCase } from 'lodash';
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { FaBookOpen, FaLock } from "react-icons/fa";
 import { RiArrowLeftSLine, RiArrowRightSLine, RiSettings3Line, RiCloseLine  } from "react-icons/ri";
+import { GiTwoCoins } from "react-icons/gi";
+import { LuCalendarRange } from "react-icons/lu";
 import 'animate.css';
 import { useAuth } from "../../context/AuthContext";
 
@@ -17,7 +19,9 @@ function BookReader() {
     const [currentChapterIndex, setCurrentChapterIndex] = useState(-1);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-			// console.log("book:", bookChapters, "chapter:", chapterData);
+		const [unlockLoading, setUnlockLoading] = useState(false);
+		const [unlockError, setUnlockError] = useState(null)
+			console.log("chapter:", chapterData);
 
    // Reading Settings State
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -67,7 +71,7 @@ function BookReader() {
             } catch (err) {
                 const errorMessage = err.response?.data?.message || "Failed to load chapter.";
                 setError(errorMessage);
-                console.error("Error fetching data:", errorMessage);
+                console.error("Error fetching data:", err.response);
             } finally {
                 setLoading(false);
             }
@@ -77,11 +81,42 @@ function BookReader() {
 
     // Clear error after 5 seconds
     useEffect(() => {
-        if (error) {
-            const timer = setTimeout(() => setError(null), 5000);
+        if (error || unlockError) {
+            const timer = setTimeout(() =>{
+							setError(null),
+							setUnlockError(null);
+						}, 5000);
             return () => clearTimeout(timer);
         }
-    }, [error]);
+    }, [error, unlockError]);
+
+		// Handle unlock chapter
+    const handleUnlockChapter = async () => {
+        setUnlockLoading(true);
+        setUnlockError(null);
+        try {
+							await axios.post(
+                `http://localhost:3000/api/v1/books/${bookId}/chapters/${chapterId}/unlock`,
+                {},
+                {
+                    headers: { Authorization: `Bearer ${auth?.token}` }
+                }
+            );
+            // Refetch chapter to update isLocked status
+            const chapterResponse = await axios.get(`http://localhost:3000/api/v1/books/${bookId}/chapters/${chapterId}`, {
+                headers: { Authorization: `Bearer ${auth?.token}` }
+            });
+            setChapterData(chapterResponse.data.data);
+            document.getElementById('purchase-chapter-modal').close();
+        } catch (err) {
+						document.getElementById('purchase-chapter-modal').close();
+            const errorMessage = err.response?.data?.message || "Failed to unlock chapter.";
+            setUnlockError(errorMessage);
+            console.error("Error unlocking chapter:", err.response);
+        } finally {
+            setUnlockLoading(false);
+        }
+    };
 
     // Navigate to previous/next chapter
     const handleNavigation = (direction) => {
@@ -143,9 +178,9 @@ function BookReader() {
     return (
         <main className="main-container p-4">
             {/* Error Alert */}
-            {error && (
-                <div className="fixed top-4 left-1/2 -translate-x-1/2 w-1/2 z-50 animate__animated animate__fadeInDown">
-                    <div role="alert" className="alert alert-error">
+            {error || unlockError && (
+                <div className="fixed left-1/2 top-4 -translate-x-1/2 z-50 animate__animated animate__fadeInDown">
+                    <div role="alert" className="alert alert-error w-auto max-w-[90vw] lg:max-w-[60vw]">
                         <svg
                             className="h-6 w-6 shrink-0 stroke-current"
                             fill="none"
@@ -158,7 +193,7 @@ function BookReader() {
                                 d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
                             />
                         </svg>
-                        <span>{error}</span>
+                        <span>{error ? error : unlockError ? unlockError : null}</span>
                     </div>
                 </div>
             )}
@@ -361,13 +396,15 @@ function BookReader() {
 											</Link>
 
 											  {/* Settings Icon */}
-                        <button
-                            onClick={() => setIsSettingsOpen(true)}
-                            className="btn btn-ghost btn-sm text-[#FFD700] hover:text-white hover:bg-gray-700 transition-colors"
-                            title="Reading Settings"
-                        >
-                            <RiSettings3Line className="text-xl" />
-                        </button>
+												{!chapterData.chapter.isLocked ? (
+													<button
+															onClick={() => setIsSettingsOpen(true)}
+															className="btn btn-ghost btn-sm text-[#FFD700] hover:text-white hover:bg-gray-700 transition-colors"
+															title="Reading Settings"
+													>
+															<RiSettings3Line className="text-xl" />
+													</button>
+												) : null}
                     </div>
                 ) : null}
 
@@ -386,19 +423,24 @@ function BookReader() {
                     ) : chapterData && chapterData.chapter ? (
                         <div className="card-body p-4">
                             <div className="flex items-center gap-2">
-                                <div className={`flex items-center justify-center w-8 h-8 border-2 ${chapterData.chapter.isLocked ? 'border-red-500 shadow-lg shadow-red-500/50' : 'border-cyan-500 shadow-lg shadow-cyan-500/50'} rounded-full`}>
+                                <div className={`flex-shrink-0 flex items-center justify-center w-8 h-8 border-2 ${chapterData.chapter.isLocked ? 'border-red-500 shadow-lg shadow-red-500/50' : 'border-cyan-500 shadow-lg shadow-cyan-500/50'} rounded-full`}>
                                     {chapterData.chapter.isLocked ? (
                                         <FaLock className="text-red-500 text-sm" />
                                     ) : (
                                         <FaBookOpen className="text-blue-500 text-sm" />
                                     )}
                                 </div>
-                                <h3 className="text-2xl font-semibold text-[#FFD700]">
-                                    Chapter {chapterData.chapter.chapterNo}: {startCase(chapterData.chapter.title)}
+                                <h3 className="text-2xl sm:text-5xl lg:text-3xl tracking-tight font-extrabold text-[#FFD700] flex gap-1">
+																	{/* Chapter number: never wrap */}
+                                    <span  className="whitespace-nowrap">{chapterData.chapter.chapterNo}.</span> 
+
+																		{/* Title: wraps normally but stays aligned on its own axis */}
+																		<span className="break-words text-[#f59f0a]">{startCase(chapterData.chapter.title)}</span>
                                 </h3>
                             </div>
-                            <p className="text-sm text-[#b9b9b9]">
-                                Released: {formatDate(chapterData.chapter.createdAt)}
+                            <p className="text-sm text-[#b9b9b9] flex items-center gap-1">
+                                <LuCalendarRange />
+																<span>{formatDate(chapterData.chapter.createdAt)}</span>
                             </p>
 														<p className="text-sm text-[#b9b9b9] flex items-center gap-1">
                                 <span>📖</span>
@@ -406,14 +448,31 @@ function BookReader() {
                             </p>
 
                             {chapterData.chapter.isLocked ? (
-                                <div className="mt-4 text-center text-red-500">
-                                    <FaLock className="inline-block text-2xl mb-2" />
-                                    <p>This chapter is locked. Please unlock to continue reading.</p>
+                                <div className="mt-4 flex flex-col items-center gap-2 text-red-500">
+                                    <div className="flex items-center justify-center w-14 h-14 border-2 border-red-500 shadow-lg shadow-red-500/50 rounded-full">
+																			<FaLock className="inline-block text-3xl" />
+																		</div>
+																		<h3 className="text-2xl font-bold tracking-tight">Chapter Locked</h3>
+                                    <p className="text-gray-400 mb-4">Unlock with coins to continue reading</p>
+																		<button
+                                        className="btn btn-info w-2/5"
+																				onClick={() => document.getElementById('purchase-chapter-modal').showModal()}
+                                        disabled={unlockLoading}
+                                    >
+                                        Unlock this chapter -
+                                        <GiTwoCoins className="text-[#FFD700] text-xl" />
+                                        {chapterData?.chapter?.coinCost}
+                                    </button>
                                 </div>
                             ) : (
-                                <div 
+                                <div
+																		draggable="false" // Prevent dragging text
                                     className="text-white mt-4 whitespace-pre-wrap"
-                                    style={getContentStyles()}
+                                    style={{
+                                        ...getContentStyles(),
+																				userSelect: 'none', // Prevent text selection                               
+                                    }}
+																		onContextMenu={(e) => e.preventDefault()} // Disable right-click context menu
                                 >
                                     {chapterData.chapter.content}
                                 </div>
@@ -440,6 +499,37 @@ function BookReader() {
                     ) : null}
                 </div>
             </div>
+						
+						{/* Purchase Confirmation Modal */}
+						<dialog id="purchase-chapter-modal" className="modal">
+                <form method="dialog" className="modal-box max-w-lg w-full-base-300">
+                    <h3 className="font-bold text-xl text-[#FFD700]">Confirm Purchase</h3>
+                    <p className="py-2 text-gray-400 text-sm">
+											Are you sure you want to purchase this chapter for <GiTwoCoins className="inline-block text-[#FFD700]" /> {chapterData?.chapter?.coinCost}  ?
+										</p>
+                
+                    <div className="modal-action gap-4">
+                        <button
+                            className="btn btn-outline btn-info"
+                            onClick={handleUnlockChapter}
+                            aria-label="Confirm purchase"
+														disabled={unlockLoading}
+                        >
+														{unlockLoading && <span className="loading loading-spinner"></span>}
+                            Purchase
+                        </button>
+												
+                        <button
+                            className="btn btn-outline"
+                            onClick={() => document.getElementById('purchase-chapter-modal').close()}
+                            aria-label="Cancel purchase"
+														disabled={unlockLoading}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </dialog>
 				</main>
     );
 }
