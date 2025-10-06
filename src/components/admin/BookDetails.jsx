@@ -37,7 +37,7 @@ function BookDetails() {
                     auth?.token
                         ? axios.get(`http://localhost:3000/api/v1/books/${id}/like-status`, {
 														headers: { Authorization: `Bearer ${auth?.token}` }
-                          })
+												})
                         : Promise.resolve({ data: { isLiked: false } }),
                     auth?.token
                         ? axios.get(`http://localhost:3000/api/v1/books/${id}/bookmark-status`, {
@@ -167,7 +167,7 @@ function BookDetails() {
         });
         return { fullDate, year }
     };
-
+		console.log(prevLikeCount);
     return (
         <main className="main-container p-4">
             {/* Error Alert */}
