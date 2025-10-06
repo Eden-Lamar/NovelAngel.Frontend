@@ -1,11 +1,17 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 const ProtectedRoute = ({ children }) => {
   const { auth } = useAuth();
+  const location = useLocation();
 
   if (!auth?.token) {
-    // If no token, redirect to login
+    // Allow login and register pages without redirect
+    if (location.pathname === "/login" || location.pathname === "/register") {
+      return children;
+    }
+
+    // Otherwise force redirect to login
     return <Navigate to="/login" replace />;
   }
 
