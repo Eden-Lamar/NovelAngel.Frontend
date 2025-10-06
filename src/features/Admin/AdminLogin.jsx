@@ -23,7 +23,7 @@ const registerSchema = yup.object().shape({
 });
 
 const AdminLogin = () => {
-	const { logout } = useAuth();
+	const { login, clearAuth, authError } = useAuth();
 
 	const { register, handleSubmit, formState: { errors } } = useForm({
 		resolver: yupResolver(registerSchema),
@@ -34,7 +34,6 @@ const AdminLogin = () => {
 	const [loading, setLoading] = useState(false);
 
 
-	const { login, authError } = useAuth();
 
 
 	const onSubmit = async (data) => {
@@ -61,16 +60,16 @@ const AdminLogin = () => {
 	};
 
 	useEffect(() => {
-			logout(); // Auto-logout when navigating to login page
+			clearAuth(); // Auto-logout when navigating to login page
 
         if (loginError) {
             const timer = setTimeout(() => setLoginError(null), 5000);
             return () => clearTimeout(timer); // Cleanup the timer on component unmount or re-render
         }
-    }, [loginError, logout]);
+    }, [loginError, clearAuth]);
 
 	return (
-		<div className="relative h-screen bg-admin-register-img bg-cover bg-center md:bg-contain">
+		<div className="relative h-screen bg-admin-login-img bg-cover bg-center md:bg-contain">
 
 
 			<div className="absolute inset-0 bg-black opacity-80"></div>
@@ -92,7 +91,7 @@ const AdminLogin = () => {
 			</div>
 
 				<div className="relative z-10 flex items-center justify-center h-full">
-					<form onSubmit={handleSubmit(onSubmit)} className="backdrop-blur-sm bg-black/30 min-h-[60%] w-1/3 p-5 rounded-lg">
+					<form onSubmit={handleSubmit(onSubmit)} className="backdrop-blur-sm bg-black/30 min-h-[50%] w-1/3 p-5 rounded-lg">
 						<h1 className="text-white mb-4">Login</h1>
 						
 						<div className="relative mb-4">
