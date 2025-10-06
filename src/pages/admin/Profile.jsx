@@ -8,6 +8,8 @@ import { LuTrash2, LuMail } from "react-icons/lu";
 import { GoPerson, GoHistory  } from "react-icons/go";
 import { RiBook2Line } from "react-icons/ri";
 import { GiBookshelf } from "react-icons/gi";
+import { PiCoinsFill } from "react-icons/pi";
+
 import { useAuth } from "../../context/AuthContext";
 import 'animate.css';
 
@@ -23,8 +25,9 @@ function Profile() {
     const [activeTab, setActiveTab] = useState('profile');
     const [previewUrl, setPreviewUrl] = useState(null);
 
-    const DEFAULT_AVATAR = "https://robohash.org/default?set=set4"; 
+    const DEFAULT_AVATAR = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || 'default'}`; 
     // you can also use: https://api.dicebear.com/6.x/initials/svg?seed=User
+    // you can also use: https://robohash.org/default?set=set4
 
 
     // Fetch user profile and reading history
@@ -214,7 +217,7 @@ function Profile() {
                     </div>
                 ) : user ? (
                     <div className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-custom-striped rounded-xl">
-                    <div className="relative">
+                    <div className="relative bg-gray-800 rounded-full p-1">
                         {/* Avatar Image */}
                         <img
                             src={   
@@ -270,9 +273,13 @@ function Profile() {
                         )}
                         </div>
 
-                        <div className="flex-1">
+                        <div className="flex-1 space-y-1">
                             <h2 className="text-xl font-semibold text-[#FFD700]">{capitalize(user.username)}</h2>
                             <p className="flex items-center gap-1 text-[#b9b9b9] text-sm"><LuMail /><span>{user.email}</span></p>
+                            <span className="flex items-center gap-1 text-[#b9b9b9] text-sm">
+                                <PiCoinsFill className="text-[#f59f0a] text-lg" /> 
+                                <span className="">{user.coinBalance.toLocaleString() || 0}</span>
+                            </span>
                         </div>
                         <button
                             className="btn btn-outline btn-info btn-sm flex items-center"
