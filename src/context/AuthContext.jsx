@@ -34,6 +34,13 @@ export const AuthProvider = ({ children }) => {
     navigate("/login");
   }, [navigate]);
 
+   // NEW: clearAuth (no navigation)
+  const clearAuth = useCallback(() => {
+    setAuth(null);
+    localStorage.removeItem("auth");
+    delete axios.defaults.headers.common["Authorization"];
+  }, []);
+
   const handleTokenInvalidation = useCallback((message) => {
     logout();
     setAuthError(message); // Set the alert message
@@ -99,7 +106,7 @@ export const AuthProvider = ({ children }) => {
   }, [handleTokenInvalidation]);
 
   return (
-    <AuthContext.Provider value={{ auth, login, logout, authError }}>
+    <AuthContext.Provider value={{ auth, login, logout, clearAuth, authError }}>
       {children}
     </AuthContext.Provider>
   );
