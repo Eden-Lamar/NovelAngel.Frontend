@@ -5,6 +5,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { FaHeart, FaRegEye, FaBookOpen, FaBookReader, FaLock, FaEdit, FaBookmark } from "react-icons/fa";
 import { RiArrowDownWideFill, RiStickyNoteAddFill } from "react-icons/ri";
 import { LuTrash2 } from "react-icons/lu";
+import { GiTwoCoins } from "react-icons/gi";
 // import { PiBooksDuotone } from "react-icons/pi";
 // import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
@@ -463,15 +464,15 @@ function BookDetails() {
                                                     <th className="w-full">Chapters</th>
                                                     <th></th>
                                                     <th className="w-1/2 text-right">
-																											<Link
-																													to={`/admin/add-chapter/${book._id}`}
-																													className="btn btn-outline btn-success btn-sm flex "
-																												>
-																													<RiStickyNoteAddFill className="" />
-																													<span className="hidden sm:inline">Add Chapter</span>
-                                                          <span className="sm:hidden">Add</span>
-																												</Link>
-																										</th>
+                                                        <Link
+                                                                to={`/admin/add-chapter/${book._id}`}
+                                                                className="btn btn-outline btn-success btn-sm flex "
+                                                            >
+                                                                <RiStickyNoteAddFill className="" />
+                                                                <span className="hidden sm:inline">Add Chapter</span>
+                                                                <span className="sm:hidden">Add</span>
+                                                            </Link>
+																											</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="text-white text-base font-medium">
@@ -508,7 +509,12 @@ function BookDetails() {
                                                                 to={`/admin/books/${book._id}/read?chapterId=${chapter._id}`}
                                                                 className="btn btn-outline btn-info btn-sm"
                                                             >
-                                                                Read
+																															{chapter.coinCost && chapter.isLocked ? (
+																																	<>
+																																		<GiTwoCoins className="inline-block" />
+																																		{chapter.coinCost}
+																																	</>
+																																) :  "Read"}
                                                             </Link>
                                                         </td>
                                                     </tr>
