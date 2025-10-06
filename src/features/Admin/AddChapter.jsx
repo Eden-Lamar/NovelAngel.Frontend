@@ -5,6 +5,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import axios from "axios";
 import { CiLock, CiUnlock  } from "react-icons/ci";
+import { GiTwoCoins } from "react-icons/gi";
 import { useAuth } from "../../context/AuthContext";
 import { startCase, truncate, capitalize } from 'lodash';
 
@@ -13,6 +14,11 @@ const chapterSchema = yup.object().shape({
   title: yup.string().required("Title is required").min(3, "Too Short!").max(80, "Too Long!"),
   content: yup.string().required("Content is required").min(20, "Content must be at least 20 characters"),
   isLocked: yup.boolean(),
+	coinCost: yup.number().when("isLocked", {
+    is: true,
+    then: schema => schema.required("Coin cost is required for locked chapters").oneOf([10, 20, 30, 40, 50, 60]),
+    otherwise: schema => schema.notRequired().transform(() => 0)
+  }),
 });
 
 function AddChapter() {
@@ -21,13 +27,16 @@ function AddChapter() {
     register, 
     handleSubmit, 
     reset,
-    formState: { errors } 
+		setValue,
+		watch,  
+    formState: { errors }
   } = useForm({
     resolver: yupResolver(chapterSchema),
       defaultValues: {
 			title: "",
 			content: "",
 			isLocked: false,
+			coinCost: 10, // default to 10
 		},
   });
 
@@ -67,6 +76,7 @@ function AddChapter() {
           title: "",
           content: "",
           isLocked: (response.data.data.chapters.length + 1) > response.data.data.freeChapters,
+					coinCost: (response.data.data.chapters.length + 1) > response.data.data.freeChapters ? 10 : 0
         });
       } catch (err) {
         const errorMessage = err.response?.status === 404 
@@ -95,6 +105,7 @@ function AddChapter() {
           title: data.title,
           content: data.content,
           isLocked: data.isLocked,
+					coinCost:  data.isLocked ? data.coinCost : 0
         },
         {
           headers: {
@@ -112,6 +123,7 @@ function AddChapter() {
         title: "",
         content: "",
         isLocked: (chapterCount + 2) > book.freeChapters,
+				coinCost: (chapterCount + 1) > book.freeChapters ? 10 : 0
       });
       // Update chapter count
       setChapterCount((prev) => prev + 1);
@@ -136,6 +148,9 @@ function AddChapter() {
       return () => clearTimeout(timer); // Cleanup timer
     }
   }, [success, error, fetchError]);
+	
+	// Coin cost options
+  const coinOptions = [10, 20, 30, 40, 50, 60];
 
   return (
     <div className="relative add-chapter-form p-6">
@@ -260,7 +275,7 @@ function AddChapter() {
         )}
         <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-4 w-8/12 mx-auto">
           <div>
-            <label htmlFor="title" className="block mb-1 font-semibold">Chapter Title</label>
+            <label htmlFor="title" className="block mb-1 font-semibold">Chapter {chapterCount + 1} Title</label>
             <input
               type="text"
               {...register("title")}
@@ -280,6 +295,32 @@ function AddChapter() {
             />
             {errors.content && <p className="text-red-500">{errors.content.message}</p>}
           </div>
+
+					{watch("isLocked") && (
+						<div>
+							<label htmlFor="coinCost" className="block mb-1 font-semibold">Select Coin Cost</label>
+							<div className="grid grid-cols-3 gap-3">
+								{coinOptions.map((cost) => (
+									<button
+										key={cost}
+										type="button"
+										onClick={() => setValue("coinCost", cost, {shouldValidate: true})}
+										className={`text-base btn  
+											${watch("coinCost") === cost 
+												? "btn-info" 
+												: "btn-outline btn-ghost"
+											}`}
+											disabled={fetchLoading || !!fetchError}
+										aria-label={`Set coin cost to ${cost}`}
+									>
+										<GiTwoCoins className="mr-1"/>
+										{cost}
+									</button>
+								))}
+							</div>
+							{errors.coinCost && <p className="text-red-500">{errors.coinCost.message}</p>}
+						</div>
+					)}
 
           <div>
             <label className="flex items-center gap-2">
