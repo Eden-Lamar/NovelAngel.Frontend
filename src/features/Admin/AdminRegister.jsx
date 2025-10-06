@@ -24,11 +24,11 @@ const registerSchema = yup.object().shape({
 
 
 const AdminRegister = () => {
-	const { logout } = useAuth();
+	const { clearAuth } = useAuth();
 	
 	useEffect(() => {
-		logout(); // Auto-logout when navigating to login page
-	}, [logout]);
+		clearAuth(); // Auto-logout when navigating to login page
+	}, [clearAuth]);
 
 
 	const { register, handleSubmit, formState: { errors } } = useForm({
@@ -47,7 +47,7 @@ const AdminRegister = () => {
 		<div className="relative h-screen bg-admin-register-img bg-cover bg-center md:bg-contain">
 			<div className="absolute inset-0 bg-black opacity-80"></div>
 				<div className="relative z-10 flex items-center justify-center h-full">
-					<form onSubmit={handleSubmit(onSubmit)} className="backdrop-blur-sm bg-black/30 min-h-[70%] w-1/3 p-5 rounded-lg">
+					<form onSubmit={handleSubmit(onSubmit)} className="backdrop-blur-sm bg-black/30 min-h-[60%] w-1/3 p-5 rounded-lg">
 						<h1 className="text-white mb-4">Sign Up</h1>
 
 						<div className="relative mb-4 flex items-center justify-center">
