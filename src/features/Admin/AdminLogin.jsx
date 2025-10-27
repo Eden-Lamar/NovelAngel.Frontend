@@ -11,12 +11,12 @@ import { useAuth } from "../../context/AuthContext";
 
 
 
-const registerSchema = yup.object().shape({
+const loginSchema = yup.object().shape({
 	email: yup.string().email("Invalid email").required("Email is required"),
 	password: yup
 		.string()
 		.required("Password is required")
-		.min(6, "Password must be at least 6 characters long"),
+		.min(8, "Password must be at least 8 characters long"),
 	// role: yup
 	// 	.string()
 	// 	.required("Please enter role"),
@@ -26,7 +26,7 @@ const AdminLogin = () => {
 	const { login, clearAuth, authError } = useAuth();
 
 	const { register, handleSubmit, formState: { errors } } = useForm({
-		resolver: yupResolver(registerSchema),
+		resolver: yupResolver(loginSchema),
 	});
 
 	const [showPassword, setShowPassword] = useState(false);
