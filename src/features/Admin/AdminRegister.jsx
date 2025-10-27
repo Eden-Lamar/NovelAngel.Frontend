@@ -11,12 +11,12 @@ import { useAuth } from '../../context/AuthContext';
 
 
 const registerSchema = yup.object().shape({
-	username: yup.string().required("Username is required").min(3, "Too Short!").max(20, "Too Long!"),
+	username: yup.string().required("Username is required").min(3, "Too Short").max(20, "Too Long"),
 	email: yup.string().email("Invalid email").required("Email is required"),
 	password: yup
 		.string()
 		.required("Password is required")
-		.min(6, "Password must be at least 6 characters long"),
+		.min(8, "Password must be at least 8 characters long"),
 	role: yup
 		.string()
 		.required("Please enter role"),
