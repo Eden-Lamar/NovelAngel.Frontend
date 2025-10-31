@@ -187,6 +187,7 @@ function CreateBook() {
             <option value="BL">BL</option>
             <option value="GL">GL</option>
             <option value="BG">BG</option>
+            <option value="No CP">No CP</option>
           </select>
           {errors.category && <p className="text-red-500">{errors.category.message}</p>}
         </div>
