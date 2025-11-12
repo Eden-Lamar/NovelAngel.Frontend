@@ -11,6 +11,12 @@ import { useState, useEffect } from "react";
 
 const { Option } = Select;
 
+const ALL_TAGS = [
+  'Action', 'Adventure', 'Comedy', 'Drama', 'Romance', 'Sci-fi',
+  'Horror', 'Thriller', 'Revenge', 'Female Protagonist', 'Fantasy',
+  'Male Protagonist', 'Historical', 'Mystery', 'Supernatural', 'Mature'
+];
+
 // Define validation schema with Yup
 const bookSchema = yup.object().shape({
   title: yup.string().required("Title is required").min(6, 'Too Short!').max(80, 'Too Long!'),
@@ -208,20 +214,20 @@ function CreateBook() {
           <Controller
             name="tags"
             control={control}
-            defaultValue="Action"
+            defaultValue={ALL_TAGS[0]}               // first tag as default (you had "Action")
             render={({ field }) => (
               <Select
                 mode="tags"
                 style={{ width: "100%" }}
-                placeholder="e.g., Action, Romance, Adventure"
+                placeholder="Select or type tags…"
                 onChange={(value) => {
                   const tagsString = value.join(","); // Convert array to comma-separated string
                   field.onChange(tagsString);
                   setValue("tags", tagsString); // Update form state
                 }}
-                value={field.value.split(",")} // Convert comma-separated string back to array for Select
+                value={field.value?.split(",") ?? []} // Convert comma-separated string back to array for Select
               >
-                {["Action", "Romance", "Adventure", "Fantasy", "Drama", "Revenge"].map((tag) => (
+                {ALL_TAGS.map((tag) => (
                   <Option key={tag} value={tag}>
                     {tag}
                   </Option>
