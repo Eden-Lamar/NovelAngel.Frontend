@@ -13,6 +13,12 @@ import "antd/dist/reset.css";
 
 const { Option } = Select;
 
+const ALL_TAGS = [
+  'Action', 'Adventure', 'Comedy', 'Drama', 'Romance', 'Sci-fi',
+  'Horror', 'Thriller', 'Revenge', 'Female Protagonist', 'Fantasy',
+  'Male Protagonist', 'Historical', 'Mystery', 'Supernatural', 'Mature'
+];
+
 const bookSchema = yup.object().shape({
   title: yup.string().required("Title is required").min(6, "Too Short!").max(80, "Too Long!"),
   author: yup.string().required("Author is required").min(3, "Too Short!").max(50, "Too Long!"),
@@ -464,15 +470,15 @@ function EditBook() {
                   mode="tags"
                   style={{ width: "100%" }}
                   className="w-full p-2 rounded-xl text-white outline-none focus:outline-[#FFD700] bg-[#090a0b]"
-                  placeholder="e.g., Action, Romance, Adventure"
+                  placeholder="Select or type tags…"
                   onChange={(value) => {
                     const tagsString = value.join(",");
                     field.onChange(tagsString);
                     setValue("tags", tagsString);
                   }}
-                  value={field.value.split(",")}
+                  value={field.value?.split(",") ?? []}
                 >
-                  {["Action", "Romance", "Adventure", "Fantasy", "Drama", "Revenge"].map((tag) => (
+                  {ALL_TAGS.map((tag) => (
                     <Option key={tag} value={tag}>{tag}</Option>
                   ))}
                 </Select>
