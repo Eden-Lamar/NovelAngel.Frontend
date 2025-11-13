@@ -3,15 +3,15 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { FaRegEyeSlash, FaRegEye  } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from '../../context/AuthContext';
-
+import api from "../../api/axios";
 
 
 
 const registerSchema = yup.object().shape({
-	username: yup.string().required("Username is required").min(3, "Too Short").max(20, "Too Long"),
+	username: yup.string().required("Username is required").min(3, "Too Short").max(30, "Too Long"),
 	email: yup.string().email("Invalid email").required("Email is required"),
 	password: yup
 		.string()
@@ -25,6 +25,7 @@ const registerSchema = yup.object().shape({
 
 const AdminRegister = () => {
 	const { clearAuth } = useAuth();
+	const navigate = useNavigate();
 	
 	useEffect(() => {
 		clearAuth(); // Auto-logout when navigating to login page
@@ -36,10 +37,30 @@ const AdminRegister = () => {
 	});
 
 	const [showPassword, setShowPassword] = useState(false);
+	const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState(null);
+  // const [success, setSuccess] = useState(null);
 
-	const onSubmit = (data) => {
-		console.log("Registration data:", data);
-		// Call the API to register an admin
+	const onSubmit = async (data) => {
+		setLoading(true);
+    setServerError(null);
+    // setSuccess(null);
+
+    try {
+      const res = await api.post("/user/register", data);
+			console.log(res);
+      // setSuccess("Account created successfully! Redirecting to login...");
+      setTimeout(() => navigate("/login"), 2000);
+    } catch (error) {
+      // console.error("Registration error:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Something went wrong. Please try again.";
+      setServerError(message);
+    } finally {
+      setLoading(false);
+    }
 	};
 
 
@@ -48,9 +69,11 @@ const AdminRegister = () => {
 			<div className="absolute inset-0 bg-black opacity-80"></div>
 				<div className="relative z-10 flex items-center justify-center h-full">
 					<form onSubmit={handleSubmit(onSubmit)} className="backdrop-blur-sm bg-black/30 min-h-[60%] w-1/3 p-5 rounded-lg">
-						<h1 className="text-white mb-4">Sign Up</h1>
+						<h1 className="text-white mb-4">Admin Sign Up</h1>
+						
+						{serverError && <p className="bg-red-400 mb-2 text-black text-sm rounded-xl px-2 py-1 leading-tight">{serverError}</p>}
 
-						<div className="relative mb-4 flex items-center justify-center">
+						<div className="relative mb-4 flex flex-col">
 							<label htmlFor="username" className="absolute left-3 top-2 transition-all duration-200 ease-in-out transform text-zinc-500 pointer-events-none focus:p-1 font-semibold">Username</label>
 
 							<input
@@ -68,7 +91,7 @@ const AdminRegister = () => {
 							{errors.username && <p className="text-red-500">{errors.username.message}</p>}
 						</div>
 						
-						<div className="relative mb-4 flex items-center justify-center">
+						<div className="relative mb-4 flex flex-col">
 							<label htmlFor="email" className="absolute left-3 top-2 transition-all duration-200 ease-in-out transform text-zinc-500 pointer-events-none focus:p-1 font-semibold">Email</label>
 
 							<input
@@ -86,7 +109,7 @@ const AdminRegister = () => {
 							{errors.email && <p className="text-red-500">{errors.email.message}</p>}
 						</div>
 						
-						<div className="relative mb-4 flex items-center justify-center">
+						<div className="relative mb-4 flex flex-col">
 							<label htmlFor="password" className="absolute left-3 top-2 transition-all duration-200 ease-in-out transform text-zinc-500 pointer-events-none focus:p-1 font-semibold">Password</label>
 
 							<input
@@ -107,9 +130,17 @@ const AdminRegister = () => {
 						</div>
 							{errors.password && <p className="text-red-500">{errors.password.message}</p>}
 						</div>
-							
+							{/* Hidden role field */}
+							<input type="hidden" value="admin" {...register("role")} />
+
 						<div>
-							<button className="btn btn-outline w-full btn-info">Sign Up</button>
+							<button 
+								className="btn btn-outline w-full btn-info" 
+								disabled={loading}
+							>
+								<span className={loading ? "loading loading-spinner" : "hidden"}></span>
+								{loading ? "Creating account..." : "Sign Up"}
+							</button>
 						</div>
 						
 						<p className="mt-6 text-sm">Already have an account? <Link to="/login" className="text-blue-500"> Login</Link> </p>
