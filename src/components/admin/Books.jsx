@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api/axios";
 import { capitalize, truncate, startCase } from 'lodash';
 import Tippy from '@tippyjs/react';
 import { FaHeart, FaRegEye, FaRegEdit } from 'react-icons/fa';
@@ -29,7 +29,7 @@ function Books() {
         const fetchBooks = async () => {
             setLoading(true);
             try {
-                const response = await axios.get(`http://localhost:3000/api/v1/books?page=${pagination.currentPage}&limit=${limit}`);
+                const response = await api.get(`/books?page=${pagination.currentPage}&limit=${limit}`);
                 console.log("Books response:", response.data);
                 setBooks(response.data.data);
                 setPagination({
@@ -70,7 +70,7 @@ function Books() {
 	// Handle book deletion
 		const handleDelete = async () => {
         try {
-            await axios.delete(`http://localhost:3000/api/v1/admin/books/${deleteBookId}`, {
+            await api.delete(`/admin/books/${deleteBookId}`, {
                 headers: { Authorization: `Bearer ${auth?.token}` }
             });
             setBooks(books.filter(book => book._id !== deleteBookId));

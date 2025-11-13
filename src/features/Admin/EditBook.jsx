@@ -3,7 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { Select } from "antd";
-import axios from "axios";
+import api from "../../api/axios";
 import { capitalize } from 'lodash';
 import { useNavigate, useParams } from "react-router-dom";
 import { FiUpload } from "react-icons/fi";
@@ -74,7 +74,7 @@ function EditBook() {
     const fetchBook = async () => {
       setFetchLoading(true);
       try {
-        const response = await axios.get(`http://localhost:3000/api/v1/books/${bookId}`);
+        const response = await api.get(`/books/${bookId}`);
         const book = response.data.data;
         setValue("title", book.title);
         setValue("author", book.author);
@@ -180,8 +180,8 @@ function EditBook() {
 
     try {
 			// IMPORTANT: DO NOT set Content-Type header manually. Let the browser set boundary.
-      const response = await axios.put(
-        `http://localhost:3000/api/v1/admin/books/${bookId}`,
+      const response = await api.put(
+        `/admin/books/${bookId}`,
         formData,
         {
           headers: {

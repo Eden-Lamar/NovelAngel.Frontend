@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import axios from "axios";
+import api from "../../api/axios";
 import { CiLock, CiUnlock  } from "react-icons/ci";
 import { GiTwoCoins } from "react-icons/gi";
 import { useAuth } from "../../context/AuthContext";
@@ -57,7 +57,7 @@ function AddChapter() {
     const fetchBookData = async () => {
       setFetchLoading(true); // Start loading
       try {
-        const response = await axios.get(`http://localhost:3000/api/v1/books/${bookId}`, {
+        const response = await api.get(`/books/${bookId}`, {
           headers: {
             "Cache-Control": "no-cache", // Prevent cached response
           },
@@ -99,8 +99,8 @@ function AddChapter() {
     }
     setLoading(true); // Show spinner
     try {
-      const response = await axios.post(
-        `http://localhost:3000/api/v1/admin/books/${bookId}/chapters`,
+      const response = await api.post(
+        `/admin/books/${bookId}/chapters`,
         {
           title: data.title,
           content: data.content,

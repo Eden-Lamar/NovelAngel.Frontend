@@ -3,7 +3,7 @@ import {BsPeopleFill } from "react-icons/bs"
 import { ImBooks } from "react-icons/im";
 import { GrInProgress } from "react-icons/gr";
 import { IoCheckmarkDoneCircle } from "react-icons/io5"
-import axios from "axios";
+import api from "../api/axios";
 import { Link } from "react-router-dom";
 import { startCase, truncate } from 'lodash';
 import { useAuth } from "../context/AuthContext";
@@ -30,12 +30,12 @@ function AdminDashboard() {
             setLoading(true);
             try {
                 const [statsResponse, booksResponse] = await Promise.all([
-                    axios.get("http://localhost:3000/api/v1/admin/dashboard", {
+                    api.get("/admin/dashboard", {
                         headers: {
                             Authorization: `Bearer ${auth?.token}`,
                         }
                     }),
-                    axios.get("http://localhost:3000/api/v1/books?limit=6")
+                    api.get("/books?limit=6")
                 ]);
 
                 console.log("Dashboard stats response:", statsResponse.data);

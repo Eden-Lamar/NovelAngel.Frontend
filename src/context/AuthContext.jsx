@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, useContext, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axios";
 import {jwtDecode} from "jwt-decode";
 
 const AuthContext = createContext();
@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
     console.log("userData", userData);
     setAuth(userData);
     localStorage.setItem("auth", JSON.stringify(userData));
-    axios.defaults.headers.common["Authorization"] = `Bearer ${userData.token}`;
+    // axios.defaults.headers.common["Authorization"] = `Bearer ${userData.token}`;
     setupAutoLogout(userData.token); // Schedule auto-logout
     navigate("/admin");
   };
@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(() => {
     setAuth(null);
     localStorage.removeItem("auth");
-    delete axios.defaults.headers.common["Authorization"];
+    delete api.defaults.headers.common["Authorization"];
     navigate("/login");
   }, [navigate]);
 
@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
   const clearAuth = useCallback(() => {
     setAuth(null);
     localStorage.removeItem("auth");
-    delete axios.defaults.headers.common["Authorization"];
+    delete api.defaults.headers.common["Authorization"];
   }, []);
 
   const handleTokenInvalidation = useCallback((message) => {
@@ -78,14 +78,14 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     console.log(auth)
     if (auth?.token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${auth.token}`;
+      api.defaults.headers.common["Authorization"] = `Bearer ${auth.token}`;
       setupAutoLogout(auth.token); // Schedule auto-logout
     }
   }, [auth, setupAutoLogout]);
 
   // Axios interceptor for handling JWT expiration or invalid token during API requests
   useEffect(() => {
-    const interceptor = axios.interceptors.response.use(
+    const interceptor = api.interceptors.response.use(
       (response) => response, // Let successful responses pass through
       (error) => {
         if (error.response?.status === 401) {
@@ -101,7 +101,7 @@ export const AuthProvider = ({ children }) => {
 
     return () => {
       // Cleanup interceptor on unmount
-      axios.interceptors.response.eject(interceptor);
+      api.interceptors.response.eject(interceptor);
     };
   }, [handleTokenInvalidation]);
 

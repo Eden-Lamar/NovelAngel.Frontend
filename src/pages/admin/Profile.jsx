@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import axios from "axios";
+import api from "../../api/axios";
 import { startCase, capitalize, truncate } from 'lodash';
 import { Link } from "react-router-dom";
 import { FaEdit, FaSave, FaTimes } from "react-icons/fa";
@@ -36,7 +36,7 @@ function Profile() {
             setLoading(true);
             try {
                 // Fetch profile
-                const profileResponse = await axios.get('http://localhost:3000/api/v1/user/profile', {
+                const profileResponse = await api.get('/user/profile', {
                     headers: { Authorization: `Bearer ${auth?.token}` }
                 });
                 setUser(profileResponse.data.data);
@@ -47,7 +47,7 @@ function Profile() {
                 });
 
                 // Fetch reading history
-                const historyResponse = await axios.get('http://localhost:3000/api/v1/user/history', {
+                const historyResponse = await api.get('/user/history', {
                     headers: { Authorization: `Bearer ${auth?.token}` }
                 });
                 setHistory(historyResponse.data.data);
@@ -109,7 +109,7 @@ function Profile() {
 						}
 
 
-            const response = await axios.put('http://localhost:3000/api/v1/user/profile', data, {
+            const response = await api.put('/user/profile', data, {
                 headers: {
                     Authorization: `Bearer ${auth?.token}`,
                     'Content-Type': 'multipart/form-data'

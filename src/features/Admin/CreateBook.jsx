@@ -4,7 +4,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { Select } from "antd";
 import "antd/dist/reset.css"; // Ensure Ant Design styles are imported
-import axios from "axios";
+import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -80,8 +80,8 @@ function CreateBook() {
     formData.append("bookImage", data.bookImage[0]); // Send file
 
     try {
-      const response = await axios.post(
-        "http://localhost:3000/api/v1/admin/books",
+      const response = await api.post(
+        "/admin/books",
         formData,
         {
           headers: {

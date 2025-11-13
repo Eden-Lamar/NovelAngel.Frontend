@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api/axios";
 import { startCase } from 'lodash';
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { FaBookOpen, FaLock } from "react-icons/fa";
@@ -42,14 +42,14 @@ function BookReader() {
             setLoading(true);
             try {
                 // Fetch book to get chapters array
-                const bookResponse = await axios.get(`http://localhost:3000/api/v1/books/${bookId}`, {
+                const bookResponse = await api.get(`/books/${bookId}`, {
                     headers: { Authorization: `Bearer ${auth?.token}` }
                 });
                 setBookChapters(bookResponse.data.data.chapters);
 
                 // Fetch chapter if chapterId is provided
                 if (chapterId) {
-                    const chapterResponse = await axios.get(`http://localhost:3000/api/v1/books/${bookId}/chapters/${chapterId}`, {
+                    const chapterResponse = await api.get(`/books/${bookId}/chapters/${chapterId}`, {
                         headers: { Authorization: `Bearer ${auth?.token}` }
                     });
                     setChapterData(chapterResponse.data.data);
@@ -59,7 +59,7 @@ function BookReader() {
                     // Default to first chapter
                     const firstChapter = bookResponse.data.data.chapters[0];
                     if (firstChapter) {
-                        const chapterResponse = await axios.get(`http://localhost:3000/api/v1/books/${bookId}/chapters/${firstChapter._id}`, {
+                        const chapterResponse = await api.get(`/books/${bookId}/chapters/${firstChapter._id}`, {
                             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                         });
                         setChapterData(chapterResponse.data.data);
@@ -95,15 +95,15 @@ function BookReader() {
         setUnlockLoading(true);
         setUnlockError(null);
         try {
-							await axios.post(
-                `http://localhost:3000/api/v1/books/${bookId}/chapters/${chapterId}/unlock`,
+							await api.post(
+                `/books/${bookId}/chapters/${chapterId}/unlock`,
                 {},
                 {
                     headers: { Authorization: `Bearer ${auth?.token}` }
                 }
             );
             // Refetch chapter to update isLocked status
-            const chapterResponse = await axios.get(`http://localhost:3000/api/v1/books/${bookId}/chapters/${chapterId}`, {
+            const chapterResponse = await api.get(`/books/${bookId}/chapters/${chapterId}`, {
                 headers: { Authorization: `Bearer ${auth?.token}` }
             });
             setChapterData(chapterResponse.data.data);

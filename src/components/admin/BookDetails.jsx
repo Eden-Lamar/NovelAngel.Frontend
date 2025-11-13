@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api/axios";
 import { startCase, truncate, capitalize } from 'lodash';
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { FaHeart, FaRegEye, FaBookOpen, FaBookReader, FaLock, FaEdit, FaBookmark } from "react-icons/fa";
@@ -33,14 +33,14 @@ function BookDetails() {
             setLoading(true);
             try {
                 const [bookResponse, likeResponse, bookmarkResponse] = await Promise.all([
-                    axios.get(`http://localhost:3000/api/v1/books/${id}`),
+                    api.get(`/books/${id}`),
                     auth?.token
-                        ? axios.get(`http://localhost:3000/api/v1/books/${id}/like-status`, {
+                        ? api.get(`/books/${id}/like-status`, {
 														headers: { Authorization: `Bearer ${auth?.token}` }
 												})
                         : Promise.resolve({ data: { isLiked: false } }),
                     auth?.token
-                        ? axios.get(`http://localhost:3000/api/v1/books/${id}/bookmark-status`, {
+                        ? api.get(`/books/${id}/bookmark-status`, {
                               headers: { Authorization: `Bearer ${auth?.token}` }
                           })
                         : Promise.resolve({ data: { isBookmarked: false } })
@@ -89,8 +89,8 @@ function BookDetails() {
 			}));
 
 			try {
-				const response = await axios.post(
-					`http://localhost:3000/api/v1/books/${id}/toggle-like`,
+				const response = await api.post(
+					`/books/${id}/toggle-like`,
 					{},
 					{ headers: { Authorization: `Bearer ${auth?.token}` } }
 				);
@@ -117,8 +117,8 @@ function BookDetails() {
         const prevIsBookmarked = isBookmarked;
         setIsBookmarked(!isBookmarked);
         try {
-            await axios.post(
-                `http://localhost:3000/api/v1/books/${id}/toggle-bookmark`,
+            await api.post(
+                `/books/${id}/toggle-bookmark`,
                 {},
                 { headers: { Authorization:  `Bearer ${auth?.token}` } }
             );
@@ -134,7 +134,7 @@ function BookDetails() {
 		// Delete book
 		const handleDelete = async () => {
 			try {
-					await axios.delete(`http://localhost:3000/api/v1/admin/books/${id}`, {
+					await api.delete(`/admin/books/${id}`, {
 							headers: { Authorization: `Bearer ${auth?.token}` }
 					});
 					setError(null);

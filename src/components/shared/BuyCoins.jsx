@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api/axios";
 import { FaCoins, FaGift, FaCrown, FaStar } from "react-icons/fa";
 import { PiCoinsFill } from "react-icons/pi";
 import { GiCutDiamond } from "react-icons/gi";
@@ -33,7 +33,7 @@ function BuyCoins() {
 						
 						setIsProfileLoading(true);
 						try {
-								const profileResponse = await axios.get('http://localhost:3000/api/v1/user/profile', {
+								const profileResponse = await api.get('/user/profile', {
 										headers: { Authorization: `Bearer ${auth?.token}` }
 								});
 								
@@ -72,8 +72,8 @@ function BuyCoins() {
         setSuccess(null);
 
         try {
-            const response = await axios.post(
-                "http://localhost:3000/api/v1/payments/buy-coins",
+            const response = await api.post(
+                "/payments/buy-coins",
                 { coins: baseCoins },
                 {
                     headers: { Authorization: `Bearer ${auth?.token}` }
