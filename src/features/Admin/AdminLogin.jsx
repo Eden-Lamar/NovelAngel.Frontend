@@ -4,7 +4,8 @@ import * as yup from "yup";
 import { FaRegEyeSlash, FaRegEye  } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import axios from "axios";
+// import { useNavigate } from "react-router-dom";
+import api from "../../api/axios";
 import 'animate.css';
 import { useAuth } from "../../context/AuthContext";
 
@@ -23,7 +24,8 @@ const loginSchema = yup.object().shape({
 });
 
 const AdminLogin = () => {
-	const { login, clearAuth, authError } = useAuth();
+	// const navigate = useNavigate()
+	const { login, authError, clearAuth } = useAuth();
 
 	const { register, handleSubmit, formState: { errors } } = useForm({
 		resolver: yupResolver(loginSchema),
@@ -38,35 +40,43 @@ const AdminLogin = () => {
 
 	const onSubmit = async (data) => {
 		setLoading(true)
-		try {
-			const response = await axios.post("http://localhost:3000/api/v1/user/login", data);
+		setLoginError(null); // Clear previous errors
 
-			// Extract token from response headers
+		try {
+			const response = await api.post("/user/login", data);
 			const token = response.headers["authorization"]?.split(" ")[1];
+
+			console.log(response);
+			// Extract token from response headers
 			// console.log(`TOKEN ${token}`);
-	  
+
 			if (token) {
 			  login({ token }); // Save token in AuthContext and localStorage
 			} else {
 				setLoginError("Authentication failed. No token received.");
-			  console.log(loginError);
+				// console.log(loginError);
 			}
 		} catch (error) {
 			setLoginError(error.response?.data?.error || "Login failed. Please try again.");
-			console.log(loginError);
+			// console.log(loginError);
 		}finally {
 			setLoading(false); // Hide spinner
 		}
 	};
 
-	useEffect(() => {
-			clearAuth(); // Auto-logout when navigating to login page
 
-        if (loginError) {
-            const timer = setTimeout(() => setLoginError(null), 5000);
-            return () => clearTimeout(timer); // Cleanup the timer on component unmount or re-render
-        }
-    }, [loginError, clearAuth]);
+		// Run clearAuth only once when this component mounts
+		useEffect(() => {
+			clearAuth(); 
+		}, [clearAuth]);
+
+		// Handle login error timeout separately
+		useEffect(() => {
+			if (loginError) {
+				const timer = setTimeout(() => setLoginError(null), 5000);
+				return () => clearTimeout(timer);
+			}
+		}, [loginError]);
 
 	return (
 		<div className="relative h-screen bg-admin-login-img bg-cover bg-center md:bg-contain">
@@ -92,7 +102,7 @@ const AdminLogin = () => {
 
 				<div className="relative z-10 flex items-center justify-center h-full">
 					<form onSubmit={handleSubmit(onSubmit)} className="backdrop-blur-sm bg-black/30 min-h-[50%] w-1/3 p-5 rounded-lg">
-						<h1 className="text-white mb-4">Login</h1>
+						<h1 className="text-white mb-4">Admin Login</h1>
 						
 						<div className="relative mb-4">
 							<label htmlFor="email" className="absolute left-3 top-2 transition-all duration-200 ease-in-out transform text-zinc-500 pointer-events-none focus:p-1 font-semibold">Email</label>
