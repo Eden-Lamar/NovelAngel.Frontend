@@ -1,11 +1,25 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import {BsPerson} from "react-icons/bs"
-import { MdOutlineSpaceDashboard, MdCancel, MdOutlineCreateNewFolder } from "react-icons/md";
+import { MdOutlineSpaceDashboard, MdCancel, MdOutlineCreateNewFolder, MdLogout } from "react-icons/md";
 import { PiBooksDuotone, PiCoins } from "react-icons/pi";
 import logo from "../../assets/logo.png";
+import { useAuth } from "../../context/AuthContext";
 
 
 function Sidebar({openSidebarToggle, OpenSidebar}) {
+	const { logout } = useAuth();
+
+	const handleLogout = () => {
+    logout(); // this will clear auth, remove token, and redirect to /login
+  };
+
+	const linkClasses = ({ isActive }) =>
+    `flex items-center gap-1 px-4 py-5 text-lg transition-colors ${
+      isActive
+        ? "text-gold font-semibold bg-[#1e1e2f] border-l-4 border-gold" // active style
+        : "text-gray-300 hover:text-gold"
+    }`;
+
   return (
 	<aside id="sidebar" className={openSidebarToggle ? "sidebar-responsive" : ""}>
 		<div className="sidebar-title flex justify-between md:justify-center p-3">
@@ -17,42 +31,49 @@ function Sidebar({openSidebarToggle, OpenSidebar}) {
 		</div>
 
 		<ul className="sidebar-list">
-			<li className="sidebar-list-item px-4 py-5 text-lg">
-				<Link to="/admin" className="flex items-center gap-1">
+			<li className="sidebar-list-item">
+				<NavLink to="/admin" end className={linkClasses}>
 					<MdOutlineSpaceDashboard className="text-2xl"/> Dashboard
-				</Link>
+				</NavLink>
 			</li>
-			<li className="sidebar-list-item px-4 py-5 text-lg">
-				<Link to="/admin/create-book" className="flex items-center gap-1">
+			<li className="sidebar-list-item">
+				<NavLink to="/admin/create-book" className={linkClasses}>
 					<MdOutlineCreateNewFolder className="text-2xl"/> Create Book
-				</Link>
+				</NavLink>
 			</li>
-			<li className="sidebar-list-item px-4 py-5 text-lg">
-				<Link to="/admin/books" className="flex items-center gap-1">
+			<li className="sidebar-list-item">
+				<NavLink to="/admin/books" className={linkClasses}>
 					<PiBooksDuotone className="text-2xl"/> Books
-				</Link>
+				</NavLink>
 			</li>
-			<li className="sidebar-list-item px-4 py-5 text-lg">
-				<Link to="/admin/profile" className="flex items-center gap-1">
+			<li className="sidebar-list-item">
+				<NavLink to="/admin/profile" className={linkClasses}>
 					<BsPerson className="text-2xl"/> Profile
-				</Link>
+				</NavLink>
 			</li>
 
-			{/* <li className="sidebar-list-item px-4 py-5 text-lg">
-				<Link to="" className="flex items-center gap-1">
+			{/* <li className="sidebar-list-item">
+				<NavLink to="" className={linkClasses}>
 					<BsListCheck className=""/> Inventory
-				</Link>
+				</NavLink>
 			</li>
-			<li className="sidebar-list-item px-4 py-5 text-lg">
-				<Link to="" className="flex items-center gap-1">
+			<li className="sidebar-list-item">
+				<NavLink to="" className={linkClasses}>
 					<BsMenuButtonWideFill className="icon"/> Report
-				</Link>
+				</NavLink>
 			</li> */}
 
-			<li className="sidebar-list-item px-4 py-5 text-lg">
-				<Link to="/admin/buy-coins" className="flex items-center gap-1">
+			<li className="sidebar-list-item">
+				<NavLink to="/admin/buy-coins" className={linkClasses}>
 					<PiCoins className="text-2xl"/> Buy Coins
-				</Link>
+				</NavLink>
+			</li>
+
+			<li
+				onClick={handleLogout}
+				className="hover:bg-red-500/20 px-4 py-5 text-lg cursor-pointer text-red-400 hover:text-red-600 flex items-center gap-1"
+			>
+          <MdLogout className="text-2xl" /> Sign Out
 			</li>
 		</ul>
 
