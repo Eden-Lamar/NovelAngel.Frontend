@@ -63,7 +63,7 @@ function Sidebar({openSidebarToggle, OpenSidebar}) {
 				</NavLink>
 			</li> */}
 
-			<li className="sidebar-list-item">
+			<li className="hidden sidebar-list-item">
 				<NavLink to="/admin/buy-coins" className={linkClasses}>
 					<PiCoins className="text-2xl"/> Buy Coins
 				</NavLink>
