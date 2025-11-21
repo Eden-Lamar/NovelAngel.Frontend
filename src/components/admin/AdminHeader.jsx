@@ -2,7 +2,7 @@ import {BsPersonCircle, BsSearch, BsJustify } from "react-icons/bs"
 
 function AdminHeader({OpenSidebar}) {
   return (
-	<header className="header h-14 flex items-center justify-between px-8">
+	<header className="hidden header h-14  items-center justify-between px-8">
 		<div className="menu-icon ">
 			<BsJustify className="icon text-2xl cursor-pointer text-[#9e9ea4]" onClick={OpenSidebar}/>
 		</div>
