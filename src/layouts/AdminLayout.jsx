@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminHeader from "../components/admin/AdminHeader";
 import Sidebar from "../components/admin/Sidebar";
 import AdminDashboard from "../pages/AdminDashboard";
@@ -10,18 +10,42 @@ import BookDetails from "../components/admin/BookDetails";
 import CreateBook from "../features/Admin/CreateBook";  // Import CreateBook page
 import AddChapter from "../features/Admin/AddChapter";  
 import EditBook from "../features/Admin/EditBook";  
-import BuyCoins from "../components/shared/BuyCoins";  
+import BuyCoins from "../components/shared/BuyCoins";
+import MobileRestricted from "../components/shared/MobileRestricted"  
 
 
 import "../components/admin/admin.css"
 
 const AdminLayout = () => {
 	const [openSidebarToggle, setOpenSidebarToggle] = useState(false);
+	const [isMobile, setIsMobile] = useState(false); // State to track screen size
+
+	// Effect to check screen size on load and resize
+  useEffect(() => {
+    const checkScreenSize = () => {
+      // 1024px covers tablets and mobiles. 
+      // If you want to allow tablets (iPad), change this to 768.
+      setIsMobile(window.innerWidth < 1024); 
+    };
+
+    // Check initially
+    checkScreenSize();
+
+    // Add listener
+    window.addEventListener('resize', checkScreenSize);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
 	const OpenSidebar = ()=>{
 		setOpenSidebarToggle(!openSidebarToggle)
 	}
 
+	// Conditionally render the restricted page
+  if (isMobile) {
+    return <MobileRestricted />;
+  }
 
 	return (
 		<div className="grid-container">
