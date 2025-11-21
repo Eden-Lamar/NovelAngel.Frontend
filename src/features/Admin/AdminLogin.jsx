@@ -101,7 +101,7 @@ const AdminLogin = () => {
 			</div>
 
 				<div className="relative z-10 flex items-center justify-center h-full">
-					<form onSubmit={handleSubmit(onSubmit)} className="backdrop-blur-sm bg-black/30 min-h-[50%] w-1/3 p-5 rounded-lg">
+					<form onSubmit={handleSubmit(onSubmit)} className="backdrop-blur-sm bg-black/30 min-h-[50%] w-11/12 md:w-1/3 p-5 rounded-lg">
 						<h1 className="text-white mb-4">Admin Login</h1>
 						
 						<div className="relative mb-4">
@@ -119,7 +119,7 @@ const AdminLogin = () => {
 									}
 								}}
 							/>
-							{errors.email && <p className="text-red-500">{errors.email.message}</p>}
+							{errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
 						</div>
 						
 						<div className="relative mb-4">
@@ -141,7 +141,7 @@ const AdminLogin = () => {
 						<div className="absolute right-3 top-3 cursor-pointer text-black text-lg" onClick={() => setShowPassword(!showPassword)}>
 							{showPassword ? <FaRegEye /> : <FaRegEyeSlash />}
 						</div>
-							{errors.password && <p className="text-red-500">{errors.password.message}</p>}
+							{errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
 						</div>
 							
 						<div>
