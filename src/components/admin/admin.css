@@ -106,7 +106,7 @@
 .main-container {
 	grid-area: main;
 	overflow-y: auto;
-	padding: 20px 20px;
+	padding: 1px 20px;
 	color: rgba(255, 255, 255, 0.95);
 }
 
@@ -157,34 +157,33 @@
 }
 
 .scrollbar-hidden::-webkit-scrollbar {
-    display: none; /* Safari and Chrome */
+	display: none; /* Safari and Chrome */
 }
 
 .scrollbar-hidden {
-    -ms-overflow-style: none;  /* Internet Explorer and Edge */
-    scrollbar-width: none;      /* Firefox */
+	-ms-overflow-style: none; /* Internet Explorer and Edge */
+	scrollbar-width: none; /* Firefox */
 }
 /* antd override style */
 /* Dark theme override for AntD Select */
 .ant-select-selector {
-  background-color: #090a0b !important; /* dark background */
-  border: 1px solid #090a0b !important; /* gray border */
-  color: #fff !important; /* text color */
+	background-color: #090a0b !important; /* dark background */
+	border: 1px solid #090a0b !important; /* gray border */
+	color: #fff !important; /* text color */
 }
 
 .ant-select-selection-item {
-  color: #000 !important; /* selected tag text */
+	color: #000 !important; /* selected tag text */
 }
 
 .ant-select-selection-placeholder {
-  color: #9ca3af !important; /* placeholder text */
+	color: #9ca3af !important; /* placeholder text */
 }
 
 .ant-select-selection-overflow-item .ant-select-selection-item {
-  background-color: #f59f0a  !important; /* tag background */
-  border-radius: 1rem !important;
+	background-color: #f59f0a !important; /* tag background */
+	border-radius: 1rem !important;
 }
-
 
 /* Medium <= 992px */
 
