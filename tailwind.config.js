@@ -11,8 +11,8 @@ export default {
     extend: {
       backgroundImage: {
         'custom-striped': 'repeating-linear-gradient(-45deg, transparent, transparent 14px, rgba(0, 0, 0, 0.3) 14px, rgba(0, 0, 0, 0.3) 15px)',
-        'admin-register-img': "url('./src/assets/download (1).jfif')",
-        'admin-login-img': "url('./src/assets/download.jfif')"
+        'admin-register-img': "url('/assets/download (1).jfif')",
+        'admin-login-img': "url('/assets/download.jfif')"
       },
       colors: {
         gold: '#FFD700', // Define your gold color here

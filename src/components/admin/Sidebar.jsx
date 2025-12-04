@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom";
 import {BsPerson} from "react-icons/bs"
 import { MdOutlineSpaceDashboard, MdCancel, MdOutlineCreateNewFolder, MdLogout } from "react-icons/md";
 import { PiBooksDuotone, PiCoins } from "react-icons/pi";
-import logo from "../../assets/logo.png";
+import logo from "/assets/logo.png";
 import { useAuth } from "../../context/AuthContext";
 
 
@@ -25,7 +25,7 @@ function Sidebar({openSidebarToggle, OpenSidebar}) {
 		<div className="sidebar-title flex justify-between md:justify-center p-3">
 			<div className="flex items-center">
 				<img src={logo} alt="Site Logo" className="h-10 w-auto" />
-				<h1 className="ml-3 text-2xl font-bold font-vibes text-transparent bg-clip-text bg-gradient-to-r from-gold to-cyan-500">Novel Angel</h1>
+				<h1 className="ml-3 text-2xl pr-1 font-bold font-vibes text-transparent bg-clip-text bg-gradient-to-r from-gold to-cyan-500">Novel Angel</h1>
 			</div>
 			<span onClick={OpenSidebar} className="text-2xl py-1 cursor-pointer text-[#9e9ea4]"><MdCancel /></span>
 		</div>
