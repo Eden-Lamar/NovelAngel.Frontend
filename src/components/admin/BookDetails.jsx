@@ -440,10 +440,10 @@ function BookDetails() {
                                 </div>
                                 {activeTab === 'summary' && (
                                     <div className="mt-4">
-                                        <p className="text-white text-base">
+                                        <p className="text-white text-base whitespace-pre-wrap">
                                             {showFullDescription
-                                                ? startCase(book.description)
-                                                : truncate(startCase(book.description), { length: 150 })}
+                                                ? book.description
+                                                : truncate(book.description, { length: 150 })}
                                         </p>
                                         {book.description.length > 150 && !showFullDescription && (
                                             <button
