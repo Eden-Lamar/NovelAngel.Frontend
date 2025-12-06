@@ -238,21 +238,21 @@ function AddChapter() {
             {/* Display chapter table */}
             {chapters.length > 0 ? (
               <div className="overflow-x-auto mt-10">
-                <table className="table w-full bg-custom-striped">
+                <table className="table table-zebra w-full bg-custom-striped">
                   <thead>
                     <tr>
-                      <th className="py-4 text-base font-semibold text-gray-400">Chapter</th>
-                      <th className="py-4 text-base font-semibold text-gray-400">Title</th>
-                      <th className="py-4 text-base font-semibold text-gray-400">Locked Status</th>
+                      <th className="py-4 text-base">Chapter</th>
+                      <th className="py-4 text-base">Title</th>
+                      <th className="py-4 text-base">Locked Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {chapters.map((chapter) => (
                       <tr key={chapter._id}>
-                        <th  className="py-4 text-base text-white font-light">{chapter.chapterNo}</th>
-                        <td  className="py-4 text-base text-white font-light">{capitalize(chapter.title)}</td>
-                        <td  className="py-4 text-base text-white font-light">
-                          <div className="base:tooltip" data-tip={chapter.isLocked ? "Locked" : "Free"}>
+                        <th  className="py-4 text-base">{chapter.chapterNo}</th>
+                        <td  className="py-4 text-base">{capitalize(chapter.title)}</td>
+                        <td  className="py-4 text-base">
+                          <div className="lg:tooltip" data-tip={chapter.isLocked ? "Locked" : "Free"}>
                             {chapter.isLocked ? (
                               <CiLock  className="text-red-500"/>
                             ) : (
