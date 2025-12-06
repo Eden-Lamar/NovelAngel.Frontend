@@ -11,7 +11,7 @@ import { startCase, truncate, capitalize } from 'lodash';
 
 // Define validation schema with Yup
 const chapterSchema = yup.object().shape({
-  title: yup.string().required("Title is required").min(3, "Too Short!").max(80, "Too Long!"),
+  title: yup.string().required("Title is required").min(3, "Too Short!").max(1000, "Too long"),
   content: yup.string().required("Content is required").min(20, "Content must be at least 20 characters"),
   isLocked: yup.boolean(),
 	coinCost: yup.number().when("isLocked", {
