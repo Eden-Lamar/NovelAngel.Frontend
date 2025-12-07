@@ -3,7 +3,7 @@ import api from "../../api/axios";
 import { startCase, truncate, capitalize } from 'lodash';
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { FaHeart, FaRegEye, FaBookOpen, FaBookReader, FaLock, FaEdit, FaBookmark } from "react-icons/fa";
-import { RiArrowDownWideFill, RiStickyNoteAddFill } from "react-icons/ri";
+import { RiArrowDownWideFill, RiStickyNoteAddFill, RiFileEditFill } from "react-icons/ri";
 import { LuTrash2 } from "react-icons/lu";
 import { GiTwoCoins } from "react-icons/gi";
 // import { PiBooksDuotone } from "react-icons/pi";
@@ -504,19 +504,34 @@ function BookDetails() {
                                                             </div>
                                                         </td>
                                                         <td></td>
-                                                        <td className="flex justify-end">
-                                                            <Link
-                                                                to={`/admin/books/${book._id}/read?chapterId=${chapter._id}`}
-                                                                className="btn btn-outline btn-info btn-sm"
-                                                            >
-																															{chapter.coinCost && chapter.isLocked ? (
-																																	<>
-																																		<GiTwoCoins className="inline-block" />
-																																		{chapter.coinCost}
-																																	</>
-																																) :  "Read"}
-                                                            </Link>
-                                                        </td>
+                                                        {/* ACTION BUTTONS COLUMN */}
+																											<td className="text-right align-middle">
+																													<div className="flex justify-end gap-1.5">
+																															{/* 1. EDIT BUTTON */}
+																															<Link
+																																	to={`/admin/books/${book._id}/chapters/${chapter._id}/edit`}
+																																	className="btn btn-outline btn-accent btn-sm"
+																																	title="Edit Chapter"
+																															>
+																																	<RiFileEditFill />
+																															</Link>
+
+																															{/* 2. DELETE BUTTON (Optional: You can add delete logic here too) */}
+																															{/* 3. READ BUTTON */}
+																															<Link
+																																	to={`/admin/books/${book._id}/read?chapterId=${chapter._id}`}
+																																	className="btn btn-outline btn-info btn-sm"
+																																	title="Read Chapter"
+																															>
+																																	{chapter.coinCost && chapter.isLocked ? (
+																																			<>
+																																					<GiTwoCoins className="inline-block" />
+																																					{chapter.coinCost}
+																																			</>
+																																	) : "Read"}
+																															</Link>
+																													</div>
+																											</td>
                                                     </tr>
                                                 ))}
                                             </tbody>
