@@ -289,6 +289,39 @@ function AddChapter() {
             <label htmlFor="content" className="block mb-1 font-semibold">Content</label>
             <textarea
               {...register("content")}
+              // SMART PASTE LOGIC
+              onPaste={(e) => {
+                  e.preventDefault(); // Stop default paste behavior
+                  const textarea = e.target;
+                  
+                  // 1. Get clipboard text
+                  let pastedText = e.clipboardData.getData("text/plain");
+
+                  // 2. Normalize newlines: 
+                  //    Replace any sequence of 1 or more newlines with exactly 2 newlines
+                  pastedText = pastedText.replace(/\r\n/g, '\n').replace(/\n+/g, '\n\n');
+
+                  // 3. Get current cursor position
+                  const start = textarea.selectionStart;
+                  const end = textarea.selectionEnd;
+                  const currentValue = textarea.value;
+
+                  // 4. Construct the new value:
+                  //    [Text before cursor] + [Formatted Pasted Text] + [Text after cursor]
+                  const newValue = 
+                    currentValue.substring(0, start) + 
+                    pastedText + 
+                    currentValue.substring(end);
+
+                  // 5. Update React Hook Form
+                  setValue("content", newValue, { shouldValidate: true });
+
+                  // 6. Restore cursor position (move it to end of pasted text)
+                  //    We use setTimeout to ensure the render cycle has finished updating the value
+                  requestAnimationFrame(() => {
+                    textarea.selectionStart = textarea.selectionEnd = start + pastedText.length;
+                  });
+                }}
               className="w-full p-2 border rounded text-black outline-none bg-slate-200 h-[1056px]"
               disabled={fetchLoading || !!fetchError}
 
