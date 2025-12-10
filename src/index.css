@@ -7,3 +7,104 @@
   padding: 0;
   box-sizing: border-box;
 }
+
+/* Custom Scrollbar */
+.ql-container {
+  flex: 1;
+  overflow-y: auto;
+  font-size: 16px;
+}
+
+/* Remove default Quill border */
+.ql-toolbar.ql-snow, 
+.ql-container.ql-snow {
+  border: none !important;
+}
+
+/* 1. MAIN SPACING: Good reading gap for story text */
+.ql-editor p {
+  margin-bottom: 1rem; 
+  line-height: 1.4; /* Increased slightly for better readability */
+}
+
+/* 2. THE FIX: Collapse Empty Paragraphs (Don't Hide Them!) */
+/* instead of 'display: none', we just remove the extra margin.
+   This lets the cursor exist (fixing your Enter key), 
+   but prevents massive gaps when pasting double-spaced text. */
+.ql-editor p:has(br:only-child) {
+    margin-bottom: 0 !important;
+    line-height: 1.2 !important; /* Keep it standard height so cursor fits */
+    height: auto !important;
+    visibility: visible !important;
+}
+
+/* Fallback: Ensure empty Ps are never hidden */
+.ql-editor p:empty {
+    display: block !important;
+    margin-bottom: 0 !important;
+}
+
+/* 3. TIGHT SPACING CLASS (For contracts/lists) */
+.ql-editor .tight-spacing {
+  margin-bottom: 0 !important;
+  line-height: 1.2 !important;
+  padding-bottom: 0.2rem !important;
+}
+
+/* Button Styling */
+.ql-snow .ql-picker.ql-tight .ql-picker-label::before,
+.ql-snow .ql-picker.ql-tight .ql-picker-item::before {
+  content: 'Tight';
+}
+
+button.ql-tight {
+  width: auto !important;
+  padding: 0 5px !important;
+  /* color: #06b6d4; Cyan color to match your theme */
+  font-weight: bold;
+}
+button.ql-tight::after {
+  content: "tight";
+}
+
+/* Scrollbar Theme */
+.ql-container::-webkit-scrollbar {
+  width: 8px;
+}
+.ql-container::-webkit-scrollbar-track {
+  background: #e2e8f0; 
+}
+.ql-container::-webkit-scrollbar-thumb {
+  background: #94a3b8; 
+  border-radius: 4px;
+}
+
+/* READER VIEW STYLES */
+
+/* Ensure paragraphs in the reader have the same spacing as the editor */
+.chapter-content p {
+    margin-bottom: 1.2rem;
+    /* We don't set line-height here because it's controlled by your React settings slider */
+}
+
+/* Collapse empty paragraphs (fixes the double spacing issue on the reader side too) */
+.chapter-content p:has(br:only-child) {
+    margin-bottom: 0 !important;
+    line-height: 0 !important;
+    height: 0;
+}
+
+/* Support for your "Tight Spacing" class in the reader */
+.chapter-content .tight-spacing {
+    margin-bottom: 0 !important;
+    padding-bottom: 0.2rem !important;
+    /* line-height is controlled by React settings, so we might leave it or force it */
+}
+
+/* Style Blockquotes if you use them */
+.chapter-content blockquote {
+    border-left: 4px solid #06b6d4;
+    padding-left: 1rem;
+    font-style: italic;
+    color: #e5e7eb;
+}
