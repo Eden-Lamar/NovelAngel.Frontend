@@ -6,6 +6,7 @@ import { FaBookOpen, FaLock } from "react-icons/fa";
 import { RiArrowLeftSLine, RiArrowRightSLine, RiSettings3Line, RiCloseLine  } from "react-icons/ri";
 import { GiTwoCoins } from "react-icons/gi";
 import { LuCalendarRange } from "react-icons/lu";
+import DOMPurify from 'dompurify';
 import 'animate.css';
 import { useAuth } from "../../context/AuthContext";
 
@@ -467,15 +468,17 @@ function BookReader() {
                             ) : (
                                 <div
 																		draggable="false" // Prevent dragging text
-                                    className="text-white mt-4 whitespace-pre-wrap"
+                                    className="text-white mt-4 chapter-content"
                                     style={{
                                         ...getContentStyles(),
 																				userSelect: 'none', // Prevent text selection                               
                                     }}
+																		dangerouslySetInnerHTML={{
+                                        __html: DOMPurify.sanitize(chapterData.chapter.content)
+                                    }}
 																		onContextMenu={(e) => e.preventDefault()} // Disable right-click context menu
-                                >
-                                    {chapterData.chapter.content}
-                                </div>
+                                />
+                                  
                             )}
                             <div className="flex justify-between mt-4">
                                 <button
