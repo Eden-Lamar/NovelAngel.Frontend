@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import api from "../../api/axios";
@@ -8,9 +8,39 @@ import { CiLock, CiUnlock } from "react-icons/ci";
 import { GiTwoCoins } from "react-icons/gi";
 import { IoChevronBack } from "react-icons/io5";
 import { startCase } from 'lodash';
+import ReactQuill, { Quill } from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 // import { useAuth } from "../../context/AuthContext";
 
-// Reuse the same schema as AddChapter
+// REGISTER CUSTOM "TIGHT" FORMAT (Same as AddChapter)
+const Parchment = Quill.import('parchment');
+const TightClass = new Parchment.Attributor.Class('tight', 'tight', {
+  scope: Parchment.Scope.BLOCK
+});
+Quill.register(TightClass, true);
+
+// DEFINE TOOLBAR (Matches AddChapter)
+const modules = {
+  toolbar: [
+    [{ 'header': [1, 2, false] }],
+    ['bold', 'italic', 'underline', 'strike'], 
+    ['blockquote', 'code-block'],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'tight': 'spacing' }], // Custom Tight Spacing Button
+    ['clean'] 
+  ],
+  clipboard: {
+    // This stops Quill from adding extra newlines when pasting from the clipboard to match visual spacing
+    matchVisual: false,
+  }
+};
+
+const formats = [
+  'header', 'bold', 'italic', 'underline', 'strike',
+  'list', 'bullet', 'blockquote', 'code-block',
+  'tight'
+];
+
 const chapterSchema = yup.object().shape({
   title: yup.string().required("Title is required").min(3, "Too Short!").max(1000, "Too long"),
   content: yup.string().required("Content is required").min(20, "Content must be at least 20 characters"),
@@ -41,6 +71,7 @@ function EditChapter() {
     reset,
     setValue,
     watch,
+    control,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(chapterSchema),
@@ -171,49 +202,29 @@ function EditChapter() {
           {errors.title && <span className="text-red-500 text-sm mt-1">{errors.title.message}</span>}
         </div>
 
-        {/* Content Textarea */}
-        <div className="form-control w-full">
+        {/* Content Editor - REACT QUILL */}
+        <div className="flex flex-col">
           <label className="label">
             <span className="label-text font-semibold text-lg">Content</span>
           </label>
-          <textarea
-            {...register("content")}
-            // SMART PASTE LOGIC
-            onPaste={(e) => {
-                e.preventDefault(); // Stop default paste behavior
-                const textarea = e.target;
-                
-                // 1. Get clipboard text
-                let pastedText = e.clipboardData.getData("text/plain");
-
-                // 2. Normalize newlines: 
-                //    Replace any sequence of 1 or more newlines with exactly 2 newlines
-                pastedText = pastedText.replace(/\r\n/g, '\n').replace(/\n+/g, '\n\n');
-
-                // 3. Get current cursor position
-                const start = textarea.selectionStart;
-                const end = textarea.selectionEnd;
-                const currentValue = textarea.value;
-
-                // 4. Construct the new value:
-                //    [Text before cursor] + [Formatted Pasted Text] + [Text after cursor]
-                const newValue = 
-                  currentValue.substring(0, start) + 
-                  pastedText + 
-                  currentValue.substring(end);
-
-                // 5. Update React Hook Form
-                setValue("content", newValue, { shouldValidate: true });
-
-                // 6. Restore cursor position (move it to end of pasted text)
-                //    We use setTimeout to ensure the render cycle has finished updating the value
-                requestAnimationFrame(() => {
-                  textarea.selectionStart = textarea.selectionEnd = start + pastedText.length;
-                });
-              }}
-            className={`textarea textarea-bordered w-full h-[600px] bg-slate-200 text-black placeholder-gray-500 focus:outline-none focus:border-cyan-500 text-base ${errors.content ? "textarea-error" : ""}`}
-            placeholder="Write your chapter content here..."
-          ></textarea>
+          <div className="h-[600px] flex flex-col bg-slate-200 rounded text-black overflow-hidden">
+                <Controller
+                  name="content"
+                  control={control}
+                  render={({ field }) => (
+                    <ReactQuill 
+                      theme="snow"
+                      value={field.value} 
+                      onChange={field.onChange}
+                      modules={modules}
+                      formats={formats}
+                      className="h-full flex flex-col" // Fill container
+                      placeholder="Write or paste your chapter content here..."
+                      readOnly={fetchLoading || !!error}
+                    />
+                  )}
+                />
+            </div>
 					{errors.content && <span className="text-red-500 text-sm mt-1">{errors.content.message}</span>}
         </div>
 

@@ -1,13 +1,47 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import api from "../../api/axios";
 import { CiLock, CiUnlock  } from "react-icons/ci";
 import { GiTwoCoins } from "react-icons/gi";
-import { useAuth } from "../../context/AuthContext";
+// import { useAuth } from "../../context/AuthContext";
 import { startCase, truncate, capitalize } from 'lodash';
+import ReactQuill, { Quill } from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+
+
+// 2. Register a Custom CSS Class Attribute
+// This tells Quill: "If we use the 'tight' format, add the class 'ql-tight'"
+const Parchment = Quill.import('parchment');
+const TightClass = new Parchment.Attributor.Class('tight', 'tight', {
+  scope: Parchment.Scope.BLOCK
+});
+Quill.register(TightClass, true);
+
+// Define Quill Toolbar Modules (Customize buttons)
+const modules = {
+  toolbar: [
+    [{ 'header': [1, 2, false] }],
+    ['bold', 'italic', 'underline', 'strike'], // toggled buttons
+    ['blockquote', 'code-block'],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'tight': 'spacing' }], // custom tight line spacing button
+    ['clean'] // remove formatting button
+  ],
+  clipboard: {
+    // This stops Quill from adding extra newlines when pasting from the clipboard to match visual spacing
+    matchVisual: false, 
+  }
+};
+
+const formats = [
+  'header',
+  'bold', 'italic', 'underline', 'strike',
+  'list', 'bullet', 'blockquote', 'code-block',
+  'tight' // include custom tight format
+];
 
 // Define validation schema with Yup
 const chapterSchema = yup.object().shape({
@@ -28,7 +62,8 @@ function AddChapter() {
     handleSubmit, 
     reset,
 		setValue,
-		watch,  
+		watch,
+    control,  
     formState: { errors }
   } = useForm({
     resolver: yupResolver(chapterSchema),
@@ -41,7 +76,7 @@ function AddChapter() {
   });
 
   // Get auth context and bookId from URL
-  const { auth } = useAuth();
+  // const { auth } = useAuth();
   const { bookId } = useParams();
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -103,14 +138,9 @@ function AddChapter() {
         `/admin/books/${bookId}/chapters`,
         {
           title: data.title,
-          content: data.content,
+          content: data.content, // This will now be an HTML string because of react-quill
           isLocked: data.isLocked,
 					coinCost:  data.isLocked ? data.coinCost : 0
-        },
-        {
-          headers: {
-            "Authorization": `Bearer ${auth?.token}`,
-          },
         }
       );
       console.log("Chapter created successfully:", response.data);
@@ -279,7 +309,7 @@ function AddChapter() {
             <input
               type="text"
               {...register("title")}
-              className="w-full p-2 border rounded text-black outline-none bg-slate-200"
+              className="w-full p-2 rounded text-black outline-none bg-slate-200"
               disabled={fetchLoading || !!fetchError}
             />
             {errors.title && <p className="text-red-500">{errors.title.message}</p>}
@@ -287,45 +317,24 @@ function AddChapter() {
 
           <div>
             <label htmlFor="content" className="block mb-1 font-semibold">Content</label>
-            <textarea
-              {...register("content")}
-              // SMART PASTE LOGIC
-              onPaste={(e) => {
-                  e.preventDefault(); // Stop default paste behavior
-                  const textarea = e.target;
-                  
-                  // 1. Get clipboard text
-                  let pastedText = e.clipboardData.getData("text/plain");
-
-                  // 2. Normalize newlines: 
-                  //    Replace any sequence of 1 or more newlines with exactly 2 newlines
-                  pastedText = pastedText.replace(/\r\n/g, '\n').replace(/\n+/g, '\n\n');
-
-                  // 3. Get current cursor position
-                  const start = textarea.selectionStart;
-                  const end = textarea.selectionEnd;
-                  const currentValue = textarea.value;
-
-                  // 4. Construct the new value:
-                  //    [Text before cursor] + [Formatted Pasted Text] + [Text after cursor]
-                  const newValue = 
-                    currentValue.substring(0, start) + 
-                    pastedText + 
-                    currentValue.substring(end);
-
-                  // 5. Update React Hook Form
-                  setValue("content", newValue, { shouldValidate: true });
-
-                  // 6. Restore cursor position (move it to end of pasted text)
-                  //    We use setTimeout to ensure the render cycle has finished updating the value
-                  requestAnimationFrame(() => {
-                    textarea.selectionStart = textarea.selectionEnd = start + pastedText.length;
-                  });
-                }}
-              className="w-full p-2 border rounded text-black outline-none bg-slate-200 h-[1056px]"
-              disabled={fetchLoading || !!fetchError}
-
-            />
+            <div className="h-[1056px]">
+                <Controller
+                  name="content"
+                  control={control}
+                  render={({ field }) => (
+                    <ReactQuill 
+                      theme="snow"
+                      value={field.value} 
+                      onChange={field.onChange}
+                      modules={modules}
+                      formats={formats}
+                      className="h-full flex flex-col bg-slate-200 text-black rounded" // Applied similar bg style
+                      placeholder="Write or paste your chapter content here..."
+                      readOnly={fetchLoading || !!fetchError}
+                    />
+                  )}
+                />
+            </div>
             {errors.content && <p className="text-red-500">{errors.content.message}</p>}
           </div>
 
