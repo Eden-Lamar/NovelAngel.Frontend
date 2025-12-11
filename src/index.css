@@ -89,7 +89,7 @@ button.ql-tight::after {
 
 /* Collapse empty paragraphs (fixes the double spacing issue on the reader side too) */
 .chapter-content p:has(br:only-child) {
-    margin-bottom: 0 !important;
+    margin-bottom: 1.2rem !important;
     line-height: 0 !important;
     height: 0;
 }
