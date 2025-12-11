@@ -176,6 +176,13 @@ function BookReader() {
         };
     };
 
+		// Helper function to detect if content is HTML
+		const isHtmlContent = (text) => {
+				if (!text) return false;
+				// Check for common HTML tags created by Quill
+				return /<p>|<br>|<div>|<ul>|<ol>|<strong>|<em>/i.test(text);
+		};
+
     return (
         <main className="main-container p-4">
             {/* Error Alert */}
@@ -466,19 +473,39 @@ function BookReader() {
                                     </button>
                                 </div>
                             ) : (
-                                <div
-																		draggable="false" // Prevent dragging text
-                                    className="text-white mt-4 chapter-content"
-                                    style={{
-                                        ...getContentStyles(),
-																				userSelect: 'none', // Prevent text selection                               
-                                    }}
-																		dangerouslySetInnerHTML={{
-                                        __html: DOMPurify.sanitize(chapterData.chapter.content)
-                                    }}
-																		onContextMenu={(e) => e.preventDefault()} // Disable right-click context menu
-                                />
-                                  
+                                // CHAPTER CONTENT RENDERING LOGIC
+																<div className="mt-4">
+																		{isHtmlContent(chapterData.chapter.content) ? (
+																				// OPTION A: NEW RICH TEXT CONTENT
+																				<div
+																						draggable="false"
+																						className="text-white chapter-content"
+																						style={{
+																								...getContentStyles(),
+																								userSelect: 'none',
+																						}}
+																						dangerouslySetInnerHTML={{
+																								__html: DOMPurify.sanitize(chapterData.chapter.content)
+																						}}
+																						onContextMenu={(e) => e.preventDefault()}
+																				/>
+																		) : (
+																				// OPTION B: OLD PLAIN TEXT CONTENT (Fallback)
+																				// We use 'whitespace-pre-wrap' to preserve \n line breaks
+																				<div
+																						draggable="false"
+																						className="text-white whitespace-pre-wrap"
+																						style={{
+																								...getContentStyles(), // Reuse your settings (font, size, etc)
+																								userSelect: 'none',
+																								display: 'block' // Ensure it behaves like a block
+																						}}
+																						onContextMenu={(e) => e.preventDefault()}
+																				>
+																						{chapterData.chapter.content}
+																				</div>
+																		)}
+																</div>
                             )}
                             <div className="flex justify-between mt-4">
                                 <button
