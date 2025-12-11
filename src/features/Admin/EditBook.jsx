@@ -136,7 +136,7 @@ function EditBook() {
       const timer = setTimeout(() => {
         setError(null);
         setSuccess(null);
-      }, 2000);
+      }, 2800);
       return () => clearTimeout(timer);
     }
   }, [error, success]);
@@ -190,7 +190,7 @@ function EditBook() {
           },
         }
       );
-      setSuccess("Book updated successfully!");
+      setSuccess("Book updated 🤘🏼");
       setError(null);
 
 			// Reload form values with updated book (instead of reset)
@@ -203,7 +203,7 @@ function EditBook() {
 			setValue("tags", updated.tags.join(","));
 			setValue("status", updated.status);
 
-			// ✅ Show the new image if updated  (or null if removed)
+			// Show the new image if updated  (or null if removed)
 			setPreviewUrl(updated.bookImage || null);
 
       setInitialBookData({
@@ -230,43 +230,39 @@ function EditBook() {
   return (
     <div className="main-container p-4">
       {(success || error) && (
-        <div >
-          {success && (
-            <div className="fixed left-auto lg:left-1/3 -translate-x-1/2 w-4/5 lg:w-1/2 z-50 animate__animated animate__fadeInDown">
-                    <div role="alert" className="alert alert-info flex">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-6 w-6 shrink-0 stroke-current"
-                          fill="none"
-                          viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span>{success}</span>
-                    </div>
-                </div>
-          )}
+        <div className="fixed left-[47%] top-4 -translate-x-1/2 z-50 animate__animated animate__fadeInDown">
           {error && (
-            <div className="fixed top-16 left-auto lg:left-1/3 -translate-x-1/2 w-4/5 lg:w-1/2 z-50 animate__animated animate__fadeInDown">
-                    <div role="alert" className="alert alert-error flex">
-                        <svg
-                            className="h-6 w-6 shrink-0 stroke-current"
-                            fill="none"
-                            viewBox="0 0 24 24" 
-                    >
-                      <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                  </svg>
-                  <span>{error}</span>
-              </div>
-          </div>
+            <div role="alert" className="alert alert-error w-auto max-w-[90vw]">
+                <svg
+                    className="h-6 w-6 shrink-0 stroke-current"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                </svg>
+                <span>{error}</span>
+            </div>
+          )}
+          {success && (
+              <div role="alert" className="alert alert-info w-auto max-w-[90vw]">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 shrink-0 stroke-current"
+                  fill="none"
+                  viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                  <span>{success}</span>
+            </div>
           )}
         </div>
       )}

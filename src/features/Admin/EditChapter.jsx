@@ -136,7 +136,7 @@ function EditChapter() {
         }
       );
 
-      setSuccess("Chapter updated successfully!");
+      setSuccess("Chapter updated 🤘🏼");
       
       // Optional: Redirect back to book details after short delay
       setTimeout(() => {
@@ -174,16 +174,39 @@ function EditChapter() {
       </div>
 
       {/* Alerts */}
-      <div className="fixed top-14 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md">
+      <div className="fixed left-[42%] top-4 -translate-x-1/2 z-50 animate__animated animate__fadeInDown">
         {error && (
-            <div className="alert alert-error shadow-lg animate__animated animate__fadeInDown mb-2">
-            <span>{error}</span>
-            </div>
+          <div role="alert" className="alert alert-error w-auto max-w-[90vw]">
+              <svg
+                  className="h-6 w-6 shrink-0 stroke-current"
+                  fill="none"
+                  viewBox="0 0 24 24"
+              >
+                  <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+              </svg>
+              <span>{error}</span>
+          </div>
         )}
         {success && (
-            <div className="alert alert-success shadow-lg animate__animated animate__fadeInDown mb-2">
-            <span>{success}</span>
-            </div>
+            <div role="alert" className="alert alert-info w-auto max-w-[90vw]">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 shrink-0 stroke-current"
+                fill="none"
+                viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+                <span>{success}</span>
+          </div>
         )}
       </div>
 
