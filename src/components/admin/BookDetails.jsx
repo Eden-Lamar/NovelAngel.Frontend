@@ -456,88 +456,103 @@ function BookDetails() {
                                         )}
                                     </div>
                                 )}
-                                {activeTab === 'chapters' && (
-                                    <div className="overflow-x-auto mt-4 border-[1px] border-gray-700 rounded-lg">
-                                        <table className="table w-full table-fixed">
-                                            <thead className="text-white text-lg font-semibold">
-                                                <tr>
-                                                    <th className="w-full">Chapters</th>
-                                                    <th></th>
-                                                    <th className="w-1/2 text-right">
-                                                        <Link
-                                                                to={`/admin/add-chapter/${book._id}`}
-                                                                className="btn btn-outline btn-success btn-sm flex "
-                                                            >
-                                                                <RiStickyNoteAddFill className="" />
-                                                                <span className="hidden sm:inline">Add Chapter</span>
-                                                                <span className="sm:hidden">Add</span>
-                                                            </Link>
-																											</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="text-white text-base font-medium">
-                                                {book.chapters.map((chapter) => (
-                                                    <tr key={chapter._id}>
-                                                        <td className="flex items-center gap-2">
-																													<div className="flex items-start gap-3">
-                                                                {/* circular icon container */}
-                                                                <div className={`flex-shrink-0 flex items-center justify-center w-8 h-8 min-w-[2rem] min-h-[2rem] border-2 ${chapter.isLocked ? 'border-red-500 shadow-lg shadow-red-500/50' : 'border-cyan-500 shadow-lg shadow-cyan-500/50'} rounded-full`}>
-                                                                    {chapter.isLocked ? (
-                                                                        <FaLock className="text-red-500 text-sm" />
-                                                                    ) : (
-                                                                        <FaBookReader className="text-blue-500 text-sm" />
-                                                                    )}
-                                                                </div>
+																	{activeTab === 'chapters' && (
+																			<div className="mt-4">
+																					{/* 1. NEW RESPONSIVE HEADER (Outside the table) */}
+																					<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+																							<h3 className="text-white text-lg font-semibold pl-1">
+																									Chapters
+																							</h3>
+																							
+																							<Link
+																									to={`/admin/add-chapter/${book._id}`}
+																									className="btn btn-outline btn-success btn-sm w-full sm:w-auto"
+																							>
+																									<RiStickyNoteAddFill className="text-lg" />
+																									<span>Add Chapter</span>
+																							</Link>
+																					</div>
 
-                                                                {/* Chapter info with proper text wrapping */}
-                                                                <div className="flex-1 min-w-0">
-                                                                    <div className="font-medium text-white break-words">
-                                                                        Chapter {chapter.chapterNo}: {startCase(chapter.title)}
-                                                                    </div>
-                                                                    <div className="text-sm font-light mt-1">
-                                                                        <span className="text-gray-300">Released: </span>
-                                                                        <span className="text-xs text-[#b9b9b9] font-normal">
-                                                                            {formatDate(chapter.createdAt).fullDate}
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td></td>
-                                                        {/* ACTION BUTTONS COLUMN */}
-																											<td className="text-right align-middle">
-																													<div className="flex justify-end gap-1.5">
-																															{/* 1. EDIT BUTTON */}
-																															<Link
-																																	to={`/admin/books/${book._id}/chapters/${chapter._id}/edit`}
-																																	className="btn btn-outline btn-accent btn-sm"
-																																	title="Edit Chapter"
-																															>
-																																	<RiFileEditFill />
-																															</Link>
+																					{/* 2. TABLE CONTAINER (Only holds the data list now) */}
+																					<div className="overflow-x-auto border-[1px] border-gray-700 rounded-lg">
+																							<table className="table w-full">
+																									{/* Optional: Simple header just for column labels if you want, 
+																											or remove <thead> entirely since we have the title above */}
+																									
+																									<tbody className="text-white text-base font-medium">
+																											{book.chapters.map((chapter) => (
+																													<tr key={chapter._id} className="hover:bg-gray-800/50 transition-colors border-b border-gray-700/50 last:border-none">
+																															{/* Column 1: Chapter Info */}
+																															<td className="align-middle">
+																																	<div className="flex items-start gap-3">
+																																			{/* Icon */}
+																																			<div className={`flex-shrink-0 flex items-center justify-center w-8 h-8 min-w-[2rem] min-h-[2rem] border-2 ${chapter.isLocked ? 'border-red-500 shadow-lg shadow-red-500/50' : 'border-cyan-500 shadow-lg shadow-cyan-500/50'} rounded-full`}>
+																																					{chapter.isLocked ? (
+																																							<FaLock className="text-red-500 text-sm" />
+																																					) : (
+																																							<FaBookReader className="text-blue-500 text-sm" />
+																																					)}
+																																			</div>
 
-																															{/* 2. DELETE BUTTON (Optional: You can add delete logic here too) */}
-																															{/* 3. READ BUTTON */}
-																															<Link
-																																	to={`/admin/books/${book._id}/read?chapterId=${chapter._id}`}
-																																	className="btn btn-outline btn-info btn-sm"
-																																	title="Read Chapter"
-																															>
-																																	{chapter.coinCost && chapter.isLocked ? (
-																																			<>
-																																					<GiTwoCoins className="inline-block" />
-																																					{chapter.coinCost}
-																																			</>
-																																	) : "Read"}
-																															</Link>
-																													</div>
-																											</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
+																																			{/* Text */}
+																																			<div className="flex-1 min-w-0">
+																																					<div className="font-medium text-white break-words">
+																																							Chapter {chapter.chapterNo}: {startCase(chapter.title)}
+																																					</div>
+																																					<div className="text-sm font-light mt-1">
+																																							<span className="text-gray-300">Released: </span>
+																																							<span className="text-xs text-[#b9b9b9] font-normal">
+																																									{formatDate(chapter.createdAt).fullDate}
+																																							</span>
+																																					</div>
+																																			</div>
+																																	</div>
+																															</td>
+
+																															{/* Column 2: Spacer (Optional, or just merge with col 3) */}
+																															<td></td>
+
+																															{/* Column 3: Action Buttons */}
+																															<td className="text-right align-middle w-auto">
+																																	<div className="flex justify-end gap-2">
+																																			{/* EDIT BUTTON */}
+																																			<Link
+																																					to={`/admin/books/${book._id}/chapters/${chapter._id}/edit`}
+																																					className="btn btn-outline btn-accent btn-sm"
+																																					title="Edit Chapter"
+																																			>
+																																					<RiFileEditFill />
+																																			</Link>
+
+																																			{/* READ BUTTON */}
+																																			<Link
+																																					to={`/admin/books/${book._id}/read?chapterId=${chapter._id}`}
+																																					className="btn btn-outline btn-info btn-sm min-w-[80px]"
+																																					title="Read Chapter"
+																																			>
+																																					{chapter.coinCost && chapter.isLocked ? (
+																																							<>
+																																									<GiTwoCoins className="inline-block" />
+																																									{chapter.coinCost}
+																																							</>
+																																					) : "Read"}
+																																			</Link>
+																																	</div>
+																															</td>
+																													</tr>
+																											))}
+																									</tbody>
+																							</table>
+																							
+																							{/* Empty State Check */}
+																							{book.chapters.length === 0 && (
+																									<div className="p-8 text-center text-gray-500">
+																											No chapters uploaded yet.
+																									</div>
+																							)}
+																					</div>
+																			</div>
+																	)}
                             </div>
                         </div>
                     ) : null}
