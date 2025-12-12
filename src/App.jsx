@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import AdminLayout from "./layouts/AdminLayout"
 import AdminLogin from "./features/Admin/AdminLogin"
 import AdminRegister from "./features/Admin/AdminRegister"
@@ -11,6 +11,9 @@ function App() {
   return (
     <>
         <Routes>
+            {/* This redirects localhost:3001/ -> localhost:3001/admin */}
+            <Route path="/" element={<Navigate to="/admin" replace />} />
+
             {/* Public routes */}
             <Route path="/login" element={<AdminLogin />} />
             <Route path="/register" element={<AdminRegister />} />
