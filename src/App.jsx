@@ -11,7 +11,7 @@ function App() {
   return (
     <>
         <Routes>
-            {/* This redirects localhost:3001/ -> localhost:3001/admin */}
+            {/* This redirects localhost:3001 -> localhost:3001/admin */}
             <Route path="/" element={<Navigate to="/admin" replace />} />
 
             {/* Public routes */}
