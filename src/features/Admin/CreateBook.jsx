@@ -21,7 +21,7 @@ const ALL_TAGS = [
 const bookSchema = yup.object().shape({
   title: yup.string().required("Title is required").min(6, 'Too short').max(1000, 'Too long'),
   author: yup.string().required("Author is required").min(3, 'Too short').max(100, 'Too long'),
-  description: yup.string().required("Description is required").min(20, 'Too short').max(3000, 'Too long'),
+  description: yup.string().required("Description is required").min(20, 'Too short').max(6000, 'Too long'),
   category: yup.string().required("Category is required"),
   country: yup.string().required("Country is required"),
   tags: yup.string().required("Tags are required"),
