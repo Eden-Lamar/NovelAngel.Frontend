@@ -244,7 +244,7 @@ function AddChapter() {
       </div>
       <h2 className="text-2xl font-bold mb-4">Add Chapter {chapterCount + 1}</h2>
 
-      <div className="flex space-x-5">
+      <div className="flex space-x-5 items-start">
         {/* Display book details */}
         {!fetchLoading && book && (
           <div className="w-2/5">        
@@ -267,13 +267,14 @@ function AddChapter() {
               
             {/* Display chapter table */}
             {chapters.length > 0 ? (
-              <div className="overflow-x-auto mt-10">
-                <table className="table table-zebra w-full bg-custom-striped">
-                  <thead>
+              <div className="overflow-x-auto mt-10 max-h-screen overflow-y-auto custom-scrollbar">
+                <table className="table table-zebra w-full bg-custom-striped relative">
+                {/* Added sticky header so you don't lose context while scrolling */}
+                  <thead className="sticky top-0 z-10 bg-slate-900 shadow-sm">
                     <tr>
-                      <th className="py-4 text-base">Chapter</th>
-                      <th className="py-4 text-base">Title</th>
-                      <th className="py-4 text-base">Locked Status</th>
+                      <th className="py-4 text-base text-gray-200">Chapter</th>
+                      <th className="py-4 text-base text-gray-200">Title</th>
+                      <th className="py-4 text-base text-gray-200">Locked Status</th>
                     </tr>
                   </thead>
                   <tbody>
