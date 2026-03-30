@@ -10,6 +10,7 @@ import BookDetails from "../components/admin/BookDetails";
 import CreateBook from "../features/Admin/CreateBook";  // Import CreateBook page
 import AddChapter from "../features/Admin/AddChapter";  
 import EditChapter from "../features/Admin/EditChapter";  
+import AgentConsole from "../features/Admin/AgentConsole";  
 import EditBook from "../features/Admin/EditBook";  
 import BuyCoins from "../components/shared/BuyCoins";
 import MobileRestricted from "../components/shared/MobileRestricted"  
@@ -63,6 +64,7 @@ const AdminLayout = () => {
 				<Route path="books/:bookId/read" element={<BookReader />} />
 				<Route path="profile" element={<Profile />} />
 				<Route path="books/:bookId/edit" element={<EditBook />} />
+				<Route path="books/:bookId/agent" element={<AgentConsole />} />
 				<Route path="buy-coins" element={<BuyCoins />} />
 				</Routes>
 			</div>
