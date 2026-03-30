@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import api from "../../api/axios";
 import { startCase, truncate, capitalize } from 'lodash';
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { FaHeart, FaRegEye, FaBookOpen, FaBookReader, FaLock, FaEdit, FaBookmark } from "react-icons/fa";
-import { RiArrowDownWideFill, RiStickyNoteAddFill, RiFileEditFill } from "react-icons/ri";
+import { FaHeart, FaRegEye, FaBookOpen, FaBookReader, FaLock, FaUnlock, FaEdit, FaBookmark } from "react-icons/fa";
+import { RiArrowDownWideFill, RiStickyNoteAddFill, RiFileEditFill, RiRobot2Fill } from "react-icons/ri";
 import { LuTrash2 } from "react-icons/lu";
 import { GiTwoCoins } from "react-icons/gi";
 // import { PiBooksDuotone } from "react-icons/pi";
@@ -25,6 +25,8 @@ function BookDetails() {
     const [isBookmarked, setIsBookmarked] = useState(false);
     const [likeLoading, setLikeLoading] = useState(false);
     const [bookmarkLoading, setBookmarkLoading] = useState(false);
+		const [deleteLoading, setDeleteLoading] = useState(false);
+		const [toggleUnlockLoading, setToggleUnlockLoading] = useState(false);
     const [prevLikeCount, setPrevLikeCount] = useState(null); // Stores prevIsLiked and prevCount to revert on failure.
 
     // Fetch book details and like/bookmark status
@@ -133,6 +135,7 @@ function BookDetails() {
 
 		// Delete book
 		const handleDelete = async () => {
+			setDeleteLoading(true);
 			try {
 					await api.delete(`/admin/books/${id}`, {
 							headers: { Authorization: `Bearer ${auth?.token}` }
@@ -142,7 +145,28 @@ function BookDetails() {
 					navigate('/admin/books');
 			} catch (err) {
 					setError(err.response?.data?.error || "Failed to delete book.");
+					setDeleteLoading(false);
 			}
+    };
+
+		// NEW: Function to handle the auto-unlock toggle
+    const handleToggleAutoUnlock = async () => {
+        setToggleUnlockLoading(true);
+        try {
+            const response = await api.patch(`/books/${id}/toggle-auto-unlock`, {}, {
+                headers: { Authorization: `Bearer ${auth?.token}` }
+            });
+            // Update the local state with the new value from the backend
+            setBook((prev) => ({
+                ...prev,
+                isAutoUnlockEnabled: response.data.data.isAutoUnlockEnabled
+            }));
+            setError(null);
+        } catch (err) {
+            setError(err.response?.data?.message || "Failed to toggle auto-unlock.");
+        } finally {
+            setToggleUnlockLoading(false);
+        }
     };
 
     // Calculate free and locked chapters
@@ -294,6 +318,14 @@ function BookDetails() {
                                     <p className="text-sm text-[#afafaf]">Uploaded By</p><p className="font-medium  text-sm 2xl:text-sm">{startCase(book.uploadedBy.username)}</p>
                                 </div>
 
+																{/* NEW: Add Auto-Unlock status to the details card */}
+                                <div className="space-y-1 col-span-2 mt-2 pt-2 border-t border-gray-700/50">
+                                    <p className="text-sm text-[#afafaf]">Daily Auto-Unlock</p>
+                                    <p className={`font-medium text-sm 2xl:text-sm ${book.isAutoUnlockEnabled ? 'text-green-400' : 'text-gray-500'}`}>
+                                        {book.isAutoUnlockEnabled ? 'Active (Releasing 1 free chapter daily)' : 'Inactive'}
+                                    </p>
+                                </div>
+
                             </div>
 
                             <div>
@@ -408,6 +440,24 @@ function BookDetails() {
                                         {startCase(book.title)}
                                     </h2>
                                     <div className="flex gap-2 shrink-0">
+																			
+																				{/* NEW: Quick Toggle Button placed before Edit and Delete */}
+                                        <button
+                                            className={`btn btn-sm flex items-center whitespace-nowrap ${book.isAutoUnlockEnabled ? 'btn-success text-white' : 'btn-outline btn-warning'}`}
+                                            onClick={handleToggleAutoUnlock}
+                                            disabled={toggleUnlockLoading}
+                                            aria-label="Toggle Auto Unlock"
+                                        >
+                                            {toggleUnlockLoading ? (
+                                                <span className="loading loading-spinner loading-xs"></span>
+                                            ) : book.isAutoUnlockEnabled ? (
+                                                <FaUnlock className="mr-2" />
+                                            ) : (
+                                                <FaLock className="mr-2" />
+                                            )}
+                                            {book.isAutoUnlockEnabled ? 'Auto-Unlock: ON' : 'Auto-Unlock: OFF'}
+                                        </button>
+
                                         <Link
                                             to={`/admin/books/${book._id}/edit`}
                                             className="btn btn-outline btn-info btn-sm flex items-center whitespace-nowrap"
@@ -464,13 +514,20 @@ function BookDetails() {
 																									Chapters
 																							</h3>
 																							
-																							<Link
-																									to={`/admin/add-chapter/${book._id}`}
-																									className="btn btn-outline btn-success btn-sm w-full sm:w-auto"
-																							>
-																									<RiStickyNoteAddFill className="text-lg" />
-																									<span>Add Chapter</span>
-																							</Link>
+																							<div className="flex gap-4">
+																								<Link
+																										to={`/admin/add-chapter/${book._id}`}
+																										className="btn btn-outline btn-success btn-sm w-full sm:w-auto"
+																								>
+																										<RiStickyNoteAddFill className="text-lg" />
+																										<span>Add Chapter</span>
+																								</Link>
+
+																								<Link to={`/admin/books/${book._id}/agent`} className="btn btn-outline btn-primary btn-sm w-full sm:w-auto">
+																									<RiRobot2Fill className="mr-2"/> Agent Console
+																								</Link>
+
+																							</div>
 																					</div>
 
 																					{/* 2. TABLE CONTAINER (Only holds the data list now) */}
@@ -562,14 +619,16 @@ function BookDetails() {
 						<dialog id="delete-book-modal" className="modal">
                 <div className="modal-box bg-base-100">
                     <h3 className="font-bold text-lg text-[#FFD700]">Confirm Deletion</h3>
-                    <p className="py-4 text-white">Are you sure you want to delete this book? This will also delete all associated chapters.</p>
+                    <p className="py-4 text-white">Are you sure you want to delete this book? This will also delete all associated chapters and Vocabs.</p>
                     <div className="modal-action">
                         <button
                             className="btn btn-outline btn-error"
                             onClick={handleDelete}
+														disabled={deleteLoading}
                             aria-label="Confirm delete book"
                         >
-                            Confirm
+                          {deleteLoading && <span className="loading loading-spinner loading-sm"></span>}
+                            {deleteLoading ? "Deleting..." : "Confirm"}
                         </button>
                         <button
                             className="btn btn-outline"
