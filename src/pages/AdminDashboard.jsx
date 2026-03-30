@@ -3,6 +3,7 @@ import {BsPeopleFill } from "react-icons/bs"
 import { ImBooks } from "react-icons/im";
 import { GrInProgress } from "react-icons/gr";
 import { IoCheckmarkDoneCircle } from "react-icons/io5"
+import { FaUnlock } from "react-icons/fa";
 import api from "../api/axios";
 import { Link } from "react-router-dom";
 import { startCase, truncate } from 'lodash';
@@ -16,7 +17,8 @@ function AdminDashboard() {
         totalBooks: 0,
         ongoingBooks: 0,
         completedBooks: 0,
-        totalCustomers: 0
+        totalCustomers: 0,
+				autoUnlockingBooks: 0
     });
     const [books, setBooks] = useState([]);
     const [booksError, setBooksError] = useState(null);
@@ -152,6 +154,21 @@ function AdminDashboard() {
                         <div className="skeleton h-10 w-16"></div>
                     ) : (
                         <h1 className="text-3xl font-bold">{stats.totalCustomers}</h1>
+                    )}
+                </div>
+            </div>
+
+						{/* NEW: Auto-Unlocking Books Card */}
+            <div className='card p-4 bg-purple-700'>
+                <div className='flex justify-between items-center text-2xl'>
+                    <h3 className="text-lg font-semibold">AUTO-UNLOCKING</h3>
+                    <FaUnlock className='card_icon'/>
+                </div>
+                <div className="mt-8">
+                    {loading ? (
+                        <div className="skeleton h-10 w-16"></div>
+                    ) : (
+                        <h1 className="text-3xl font-bold">{stats.autoUnlockingBooks}</h1>
                     )}
                 </div>
             </div>
