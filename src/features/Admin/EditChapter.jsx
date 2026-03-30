@@ -85,6 +85,29 @@ function EditChapter() {
 
   const coinOptions = [10, 20, 30, 40, 50, 60];
 
+  // --- HELPER FUNCTION: Convert Plain Text \n to <p> tags ---
+  const formatContentForEditor = (content) => {
+    if (!content) return "";
+
+    // 1. Check if it's already HTML (Has <p>, <div>, <br>, etc.)
+    const hasHtmlTags = /<[a-z][\s\S]*>/i.test(content);
+
+    // 2. If it IS HTML, return it as is.
+    if (hasHtmlTags) {
+        return content;
+    }
+
+    // 3. If it is PLAIN TEXT (from Scraper), convert newlines to Paragraphs manually
+    return content
+        .split(/\r?\n/) // Split by newline
+        .map(line => {
+            const trimmed = line.trim();
+            // If line has text, wrap in <p>, otherwise add an empty spacer paragraph
+            return trimmed ? `<p>${trimmed}</p>` : '<p><br></p>'; 
+        })
+        .join('');
+  };
+
   // 1. Fetch Existing Chapter Data
   useEffect(() => {
     const fetchChapterData = async () => {
@@ -100,10 +123,15 @@ function EditChapter() {
             setBookTitle(chapterData.book.title);
         }       
 
+
+        // --- APPLY THE FIX HERE ---
+        // We format the content before giving it to React Hook Form / Quill
+        const formattedContent = formatContentForEditor(chapterData.content);
+
 				// Populate Form
         reset({
           title: chapterData.title,
-          content: chapterData.content,
+          content: formattedContent,
           isLocked: chapterData.isLocked,
           coinCost: chapterData.coinCost || 0,
         });
@@ -130,7 +158,7 @@ function EditChapter() {
         `/admin/chapters/${chapterId}`,
         {
           title: data.title,
-          content: data.content,
+          content: data.content, // Quill will now output valid HTML since it received valid HTML
           isLocked: data.isLocked,
           coinCost: data.isLocked ? data.coinCost : 0,
         }
