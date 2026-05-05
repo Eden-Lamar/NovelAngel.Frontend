@@ -144,7 +144,11 @@ function AdminDashboard() {
                 </div>
             </div>
 
-            <div className='card p-4 bg-rose-800'>
+            {/* MODIFIED: Customers Card is now a clickable Link */}
+            <Link 
+                to="/admin/customers" 
+                className='card p-4 bg-rose-800 hover:brightness-110 hover:scale-[1.02] transition-all cursor-pointer block'
+            >
                 <div className='flex justify-between items-center text-2xl'>
                     <h3 className="text-lg font-semibold">CUSTOMERS</h3>
                     <BsPeopleFill className='card_icon'/>
@@ -156,10 +160,13 @@ function AdminDashboard() {
                         <h1 className="text-3xl font-bold">{stats.totalCustomers}</h1>
                     )}
                 </div>
-            </div>
+            </Link>
 
-						{/* NEW: Auto-Unlocking Books Card */}
-            <div className='card p-4 bg-purple-700'>
+					{/* MODIFIED: Auto-Unlocking Books Card is now a clickable Link */}
+				<Link 
+						to="/admin/books?autoUnlock=true" 
+						className='card p-4 bg-purple-700 hover:brightness-110 hover:scale-[1.02] transition-all cursor-pointer block'
+            >
                 <div className='flex justify-between items-center text-2xl'>
                     <h3 className="text-lg font-semibold">AUTO-UNLOCKING</h3>
                     <FaUnlock className='card_icon'/>
@@ -171,7 +178,7 @@ function AdminDashboard() {
                         <h1 className="text-3xl font-bold">{stats.autoUnlockingBooks}</h1>
                     )}
                 </div>
-            </div>
+            </Link>
         </div>
 
         {/* Recent Books Section */}
