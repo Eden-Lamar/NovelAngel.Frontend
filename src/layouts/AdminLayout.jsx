@@ -14,6 +14,7 @@ import AgentConsole from "../features/Admin/AgentConsole";
 import EditBook from "../features/Admin/EditBook";  
 import BuyCoins from "../components/shared/BuyCoins";
 import MobileRestricted from "../components/shared/MobileRestricted"  
+import Customers from "../pages/Customers";
 
 
 import "../components/admin/admin.css"
@@ -66,6 +67,7 @@ const AdminLayout = () => {
 				<Route path="books/:bookId/edit" element={<EditBook />} />
 				<Route path="books/:bookId/agent" element={<AgentConsole />} />
 				<Route path="buy-coins" element={<BuyCoins />} />
+				<Route path="customers" element={<Customers />} />
 				</Routes>
 			</div>
 		</div>
