@@ -4,7 +4,7 @@ import { capitalize, truncate, startCase } from 'lodash';
 import Tippy from '@tippyjs/react';
 import { FaHeart, FaRegEye, FaRegEdit } from 'react-icons/fa';
 import { LuTrash2 } from "react-icons/lu";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { BiBookContent } from "react-icons/bi";
 import 'tippy.js/dist/tippy.css';
 import { useAuth } from "../../context/AuthContext";
@@ -13,6 +13,7 @@ import { getCountryFlagCode } from "../../helperFunction";
 
 function Books() {
     const { auth } = useAuth();
+		const [searchParams] = useSearchParams(); // NEW: Hook to get URL parameters
     const [books, setBooks] = useState([]);
     const [pagination, setPagination] = useState({
         total: 0,
@@ -24,12 +25,21 @@ function Books() {
 		const [deleteBookId, setDeleteBookId] = useState(null);
     const limit = 12; // Books per page
 
+		// NEW: Check if the URL has ?autoUnlock=true
+    const isAutoUnlockFilter = searchParams.get("autoUnlock") === "true";
+
     // Fetch books with pagination
     useEffect(() => {
         const fetchBooks = async () => {
             setLoading(true);
             try {
-                const response = await api.get(`/books?page=${pagination.currentPage}&limit=${limit}`);
+							// MODIFIED: Append autoUnlock parameter if it exists
+                let url = `/books?page=${pagination.currentPage}&limit=${limit}`;
+                if (isAutoUnlockFilter) {
+                    url += `&autoUnlock=true`;
+                }
+
+                const response = await api.get(url);
                 console.log("Books response:", response.data);
                 setBooks(response.data.data);
                 setPagination({
@@ -47,7 +57,7 @@ function Books() {
             }
         };
         fetchBooks();
-    }, [pagination.currentPage]);
+    }, [pagination.currentPage, isAutoUnlockFilter]);
 
     // Clear error after 5 seconds
     useEffect(() => {
@@ -84,7 +94,16 @@ function Books() {
     return (
         <main className="main-container p-4">
             <div className="main-title text-xl font-bold mb-4">
-                <h3>All Books</h3>
+                {/* MODIFIED: Dynamically change title and add a "Clear Filter" button */}
+                <h3 className="text-xl font-bold text-[#FFD700] py-2">
+                    {isAutoUnlockFilter ? "Auto-Unlocking Books" : "All Books"}
+                </h3>
+                
+                {isAutoUnlockFilter && (
+                    <Link to="/admin/books" className="btn btn-sm btn-outline btn-error">
+                        Clear Filter
+                    </Link>
+                )}
             </div>
 
             {/* Error Alert */}
@@ -125,7 +144,14 @@ function Books() {
                             </div>
                         </div>
                     ))
-                ) :(
+                ): books.length === 0 ? (
+                    <div className="col-span-full flex flex-col items-center justify-center p-10 bg-gray-800/30 rounded-xl border border-gray-700">
+                        <p className="text-gray-400 text-lg">No books found.</p>
+                        {isAutoUnlockFilter && (
+                            <p className="text-gray-500 text-sm mt-2">There are currently no books configured for daily auto-unlock.</p>
+                        )}
+                    </div>
+                ) : (
                     books.map((book) => (
                         <div key={book._id} className="card card-side bg-base-100 shadow-xl glass group w-full h-60">
                             <figure className="relative overflow-hidden w-1/2 rounded-e-xl">
