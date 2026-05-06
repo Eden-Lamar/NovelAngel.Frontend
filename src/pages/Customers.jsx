@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import { FaRegCopy } from "react-icons/fa6";
+import { IoCheckmarkDoneCircle } from "react-icons/io5";
 
 function Customers() {
     const { auth } = useAuth();
@@ -12,6 +14,9 @@ function Customers() {
         currentPage: 1,
         totalPages: 1
     });
+
+		// State to track which item was just copied
+    const [copiedId, setCopiedId] = useState(null);
 
     const limit = 15;
 
@@ -45,6 +50,17 @@ function Customers() {
         }
     };
 
+		// NEW: Function to copy text and trigger the temporary UI feedback
+    const handleCopy = (text, id) => {
+        navigator.clipboard.writeText(text);
+        setCopiedId(id);
+        
+        // Reset the copied state after 2 seconds
+        setTimeout(() => {
+            setCopiedId(null);
+        }, 2000);
+    };
+
     return (
         <main className="main-container p-4">
             <div className="main-title mb-6">
@@ -65,13 +81,13 @@ function Customers() {
                 <div className="overflow-x-auto">
                     <table className="table w-full">
                         <thead className="bg-gray-800 text-gray-300">
-                            <tr>
+                            <tr className="text-left text-gray-200 text-xs uppercase">
                                 <th className="rounded-tl-xl pl-6">Profile</th>
                                 <th>Username</th>
                                 <th>Email</th>
                                 <th>Coins</th>
                                 <th>Unlocked Chapters</th>
-                                <th className="rounded-tr-xl">Joined Date</th>
+                                <th className="rounded-tr-xl">Date Joined </th>
                             </tr>
                         </thead>
                         <tbody className="text-white bg-custom-striped">
@@ -111,8 +127,49 @@ function Customers() {
                                                     className="w-10 h-10 rounded-xl object-cover border border-gray-600 bg-gray-800"
                                                 />
                                             </td>
-                                            <td className="font-medium">{customer.username}</td>
-                                            <td className="text-gray-300 capitalize">{customer.email}</td>
+
+																						{/* MODIFIED: Username column with copy icon */}
+                                            <td className="font-medium">
+                                                <div className="flex items-center gap-2">
+                                                    <span>{customer.username}</span>
+                                                    <button 
+                                                        onClick={() => handleCopy(customer.username, `${customer._id}-username`)}
+                                                        className="text-gray-400 hover:text-white transition-colors"
+                                                        aria-label="Copy username"
+                                                    >
+                                                        {copiedId === `${customer._id}-username` ? (
+                                                            <IoCheckmarkDoneCircle className="text-green-500" />
+                                                        ) : (
+                                                            <FaRegCopy />
+                                                        )}
+                                                    </button>
+                                                    {copiedId === `${customer._id}-username` && (
+                                                        <span className="text-xs text-green-500 font-normal animate__animated animate__fadeIn">Copied!</span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            
+                                            {/* MODIFIED: Email column with copy icon */}
+                                            <td className="text-gray-300 capitalize">
+                                                <div className="flex items-center gap-2">
+                                                    <span>{customer.email}</span>
+                                                    <button 
+                                                        onClick={() => handleCopy(customer.email, `${customer._id}-email`)}
+                                                        className="text-gray-400 hover:text-white transition-colors"
+                                                        aria-label="Copy email"
+                                                    >
+                                                        {copiedId === `${customer._id}-email` ? (
+                                                            <IoCheckmarkDoneCircle className="text-green-500" />
+                                                        ) : (
+                                                            <FaRegCopy />
+                                                        )}
+                                                    </button>
+                                                    {copiedId === `${customer._id}-email` && (
+                                                        <span className="text-xs text-green-500 font-normal animate__animated animate__fadeIn">Copied!</span>
+                                                    )}
+                                                </div>
+                                            </td>
+
                                             <td className="text-[#FFD700] font-semibold">{customer.coinBalance || 0}</td>
                                             <td>{customer.unlockedChapters?.length || 0}</td>
                                             <td className="text-gray-400 text-sm">
