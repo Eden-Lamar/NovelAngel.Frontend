@@ -26,7 +26,15 @@ function BookDetails() {
     const [likeLoading, setLikeLoading] = useState(false);
     const [bookmarkLoading, setBookmarkLoading] = useState(false);
 		const [deleteLoading, setDeleteLoading] = useState(false);
-		const [toggleUnlockLoading, setToggleUnlockLoading] = useState(false);
+
+		// NEW: State for Auto-Unlock Modal
+    const [isSavingUnlock, setIsSavingUnlock] = useState(false);
+    const [unlockSettings, setUnlockSettings] = useState({
+        isEnabled: false,
+        count: 1,
+        time: "00:00"
+    });
+
     const [prevLikeCount, setPrevLikeCount] = useState(null); // Stores prevIsLiked and prevCount to revert on failure.
 
     // Fetch book details and like/bookmark status
@@ -47,7 +55,7 @@ function BookDetails() {
                           })
                         : Promise.resolve({ data: { isBookmarked: false } })
                 ]);
-                console.log("Book details response:", bookResponse.data);
+                // console.log("Book details response:", bookResponse.data);
                 setBook(bookResponse.data.data);
                 setIsLiked(likeResponse.data.isLiked);
                 setIsBookmarked(bookmarkResponse.data.isBookmarked);
@@ -56,7 +64,7 @@ function BookDetails() {
             } catch (err) {
                 const errorMessage = err.response?.data?.message || "Failed to load book details.";
                 setError(errorMessage);
-                console.error("Error fetching book details:", errorMessage);
+                // console.error("Error fetching book details:", errorMessage);
             } finally {
                 setLoading(false);
             }
@@ -149,23 +157,36 @@ function BookDetails() {
 			}
     };
 
-		// NEW: Function to handle the auto-unlock toggle
-    const handleToggleAutoUnlock = async () => {
-        setToggleUnlockLoading(true);
+		// NEW: Open modal and populate with book's current settings
+    const openUnlockModal = () => {
+        setUnlockSettings({
+            isEnabled: book.isAutoUnlockEnabled || false,
+            count: book.autoUnlockCount || 1,
+            time: book.autoUnlockTime || "00:00"
+        });
+        document.getElementById('auto-unlock-modal').showModal();
+    };
+
+    // NEW: Submit updated settings to backend
+    const handleSaveUnlockSettings = async () => {
+        setIsSavingUnlock(true);
         try {
-            const response = await api.patch(`/books/${id}/toggle-auto-unlock`, {}, {
+            await api.patch(`/books/${id}/toggle-auto-unlock`, unlockSettings, {
                 headers: { Authorization: `Bearer ${auth?.token}` }
             });
-            // Update the local state with the new value from the backend
+            // Update the local state with the new values
             setBook((prev) => ({
                 ...prev,
-                isAutoUnlockEnabled: response.data.data.isAutoUnlockEnabled
+                isAutoUnlockEnabled: unlockSettings.isEnabled,
+                autoUnlockCount: unlockSettings.count,
+                autoUnlockTime: unlockSettings.time
             }));
+            document.getElementById('auto-unlock-modal').close();
             setError(null);
         } catch (err) {
             setError(err.response?.data?.message || "Failed to toggle auto-unlock.");
         } finally {
-            setToggleUnlockLoading(false);
+            setIsSavingUnlock(false);
         }
     };
 
@@ -318,11 +339,11 @@ function BookDetails() {
                                     <p className="text-sm text-[#afafaf]">Uploaded By</p><p className="font-medium  text-sm 2xl:text-sm">{startCase(book.uploadedBy.username)}</p>
                                 </div>
 
-																{/* NEW: Add Auto-Unlock status to the details card */}
+																{/* MODIFIED: Added dynamic text for the new time/count fields */}
                                 <div className="space-y-1 col-span-2 mt-2 pt-2 border-t border-gray-700/50">
                                     <p className="text-sm text-[#afafaf]">Daily Auto-Unlock</p>
                                     <p className={`font-medium text-sm 2xl:text-sm ${book.isAutoUnlockEnabled ? 'text-green-400' : 'text-gray-500'}`}>
-                                        {book.isAutoUnlockEnabled ? 'Active (Releasing 1 free chapter daily)' : 'Inactive'}
+																			{book.isAutoUnlockEnabled ? `Active (${book.autoUnlockCount || 1} chapter(s) daily at ${book.autoUnlockTime || '00:00'})` : 'Inactive'}
                                     </p>
                                 </div>
 
@@ -441,16 +462,13 @@ function BookDetails() {
                                     </h2>
                                     <div className="flex gap-2 shrink-0">
 																			
-																				{/* NEW: Quick Toggle Button placed before Edit and Delete */}
+																				{/* MODIFIED: Opens modal instead of executing immediately */}
                                         <button
                                             className={`btn btn-sm flex items-center whitespace-nowrap ${book.isAutoUnlockEnabled ? 'btn-success text-white' : 'btn-outline btn-warning'}`}
-                                            onClick={handleToggleAutoUnlock}
-                                            disabled={toggleUnlockLoading}
+                                            onClick={openUnlockModal}
                                             aria-label="Toggle Auto Unlock"
                                         >
-                                            {toggleUnlockLoading ? (
-                                                <span className="loading loading-spinner loading-xs"></span>
-                                            ) : book.isAutoUnlockEnabled ? (
+                                            {book.isAutoUnlockEnabled ? (
                                                 <FaUnlock className="mr-2" />
                                             ) : (
                                                 <FaLock className="mr-2" />
@@ -634,6 +652,84 @@ function BookDetails() {
                             className="btn btn-outline"
                             onClick={() => document.getElementById('delete-book-modal').close()}
                             aria-label="Cancel delete book"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </dialog>
+
+						{/* NEW: Auto-Unlock Settings Modal */}
+            <dialog id="auto-unlock-modal" className="modal">
+                <div className="modal-box bg-gray-900 border border-gray-700">
+                    <h3 className="font-bold text-xl text-[#FFD700] mb-2">
+                        Auto-Unlock Settings
+                    </h3>
+                    {book && (
+                        <p className="text-gray-400 text-sm mb-6">
+                            Configure daily releases for <span className="text-white italic">{book.title}</span>.
+                        </p>
+                    )}
+
+                    <div className="space-y-6">
+                        {/* Toggle Switch */}
+                        <div className="flex items-center justify-between bg-gray-800 p-4 rounded-xl border border-gray-700">
+                            <div>
+                                <span className="block text-white font-medium">Enable Auto-Unlock</span>
+                                <span className="block text-xs text-gray-400 mt-1">Automatically release chapters on a schedule.</span>
+                            </div>
+                            <input 
+                                type="checkbox" 
+                                className="toggle toggle-success" 
+                                checked={unlockSettings.isEnabled} 
+                                onChange={(e) => setUnlockSettings({...unlockSettings, isEnabled: e.target.checked})} 
+                            />
+                        </div>
+
+                        {/* Slide-down Configuration (Only visible if enabled) */}
+                        <div className={`space-y-4 overflow-hidden transition-all duration-300 ${unlockSettings.isEnabled ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'}`}>
+                            
+                            {/* Chapter Count Input */}
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text text-gray-300 font-medium">Chapters to release per day</span>
+                                </label>
+                                <input 
+                                    type="number" 
+                                    min="1" 
+                                    className="input input-bordered bg-gray-800 text-white border-gray-700 focus:border-[#FFD700]" 
+                                    value={unlockSettings.count} 
+                                    onChange={(e) => setUnlockSettings({...unlockSettings, count: e.target.value})} 
+                                />
+                            </div>
+
+                            {/* Time Picker Input */}
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text text-gray-300 font-medium">Release Time (WAT - Africa/Lagos)</span>
+                                </label>
+                                <input 
+                                    type="time" 
+                                    className="input input-bordered bg-gray-800 text-white border-gray-700 focus:border-[#FFD700] [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]" 
+                                    value={unlockSettings.time} 
+                                    onChange={(e) => setUnlockSettings({...unlockSettings, time: e.target.value})} 
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="modal-action mt-8">
+                        <button 
+                            className="btn bg-[#FFD700] text-black hover:bg-yellow-500 border-none w-32" 
+                            onClick={handleSaveUnlockSettings}
+                            disabled={isSavingUnlock}
+                        >
+                            {isSavingUnlock ? <span className="loading loading-spinner"></span> : "Save"}
+                        </button>
+                        <button 
+                            className="btn btn-outline text-gray-300 hover:bg-gray-800" 
+                            onClick={() => document.getElementById('auto-unlock-modal').close()}
+                            disabled={isSavingUnlock}
                         >
                             Cancel
                         </button>
