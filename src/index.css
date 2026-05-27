@@ -108,3 +108,32 @@ button.ql-tight::after {
     font-style: italic;
     color: #e5e7eb;
 }
+
+@keyframes glass-shimmer {
+  0% { left: -100%; }
+  100% { left: 200%; } 
+}
+
+/* This class ONLY handles the animation now, no colors */
+.glass-shimmer-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-shimmer-effect::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-25deg); 
+  animation: glass-shimmer 2.5s infinite ease-in-out;
+  pointer-events: none; 
+}
