@@ -1,4 +1,3 @@
-// CreateBook.jsx
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -23,6 +22,7 @@ const bookSchema = yup.object().shape({
   author: yup.string().required("Author is required").min(3, 'Too short').max(100, 'Too long'),
   description: yup.string().required("Description is required").min(20, 'Too short').max(6000, 'Too long'),
   category: yup.string().required("Category is required"),
+	buyMeACoffeeLink: yup.string().url("Must be a valid URL").nullable(),
   country: yup.string().required("Country is required"),
   tags: yup.string().required("Tags are required"),
   bookImage: yup
@@ -53,6 +53,7 @@ function CreateBook() {
       description: "",
       category: "",
       country: "",
+			buyMeACoffeeLink: "",
       tags: "Action",
       bookImage: null,
     },
@@ -77,6 +78,10 @@ function CreateBook() {
     formData.append("category", data.category);
     formData.append("country", data.country)
     formData.append("tags", data.tags); // Already a comma-separated string
+		// Append the link if it exists
+    if (data.buyMeACoffeeLink) {
+      formData.append("buyMeACoffeeLink", data.buyMeACoffeeLink);
+    }
     formData.append("bookImage", data.bookImage[0]); // Send file
 
     try {
@@ -236,6 +241,17 @@ function CreateBook() {
             )}
           />
           {errors.tags && <p className="text-red-500">{errors.tags.message}</p>}
+        </div>
+
+				<div>
+          <label htmlFor="buyMeACoffeeLink" className="block mb-1 font-semibold">Link To The Complete Ebook</label>
+          <input
+            type="url"
+            placeholder="https://buymeacoffee.com/..."
+            {...register("buyMeACoffeeLink")}
+            className="w-full p-2 border rounded text-black outline-none bg-slate-200"
+          />
+          {errors.buyMeACoffeeLink && <p className="text-red-500">{errors.buyMeACoffeeLink.message}</p>}
         </div>
 
         <div>
