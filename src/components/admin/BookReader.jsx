@@ -5,6 +5,7 @@ import { useParams, useSearchParams, Link } from "react-router-dom";
 import { FaBookOpen, FaLock } from "react-icons/fa";
 import { RiArrowLeftSLine, RiArrowRightSLine, RiSettings3Line, RiCloseLine  } from "react-icons/ri";
 import { GiTwoCoins } from "react-icons/gi";
+import { GrDownload } from "react-icons/gr";
 import { LuCalendarRange } from "react-icons/lu";
 import DOMPurify from 'dompurify';
 import 'animate.css';
@@ -17,6 +18,7 @@ function BookReader() {
     const chapterId = searchParams.get('chapterId');
     const [chapterData, setChapterData] = useState(null);
     const [bookChapters, setBookChapters] = useState([]);
+		const [bookLink, setBookLink] = useState(null);
     const [currentChapterIndex, setCurrentChapterIndex] = useState(-1);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -47,6 +49,7 @@ function BookReader() {
                     headers: { Authorization: `Bearer ${auth?.token}` }
                 });
                 setBookChapters(bookResponse.data.data.chapters);
+								setBookLink(bookResponse.data.data.buyMeACoffeeLink);
 
                 // Fetch chapter if chapterId is provided
                 if (chapterId) {
@@ -507,6 +510,23 @@ function BookReader() {
 																		)}
 																</div>
                             )}
+														
+														{/* NEW: Buy Ebook Banner at bottom of chapter */}
+                        {bookLink && (
+                            <div className="mt-8 mb-2">
+                                <a 
+                                    href={bookLink} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="btn btn-outline btn-warning glass-shimmer-effect w-full font-bold  flex flex-col sm:flex-row gap-2 h-auto py-3"
+                                >
+																		<GrDownload className="text-lg font-bold" /> 
+                                    <span> Tired of waiting?</span> 
+                                    <span>Buy the Complete Ebook Now!</span>
+                                </a>
+                            </div>
+                        )}
+
                             <div className="flex justify-between mt-4">
                                 <button
                                     className="btn btn-outline btn-info"
