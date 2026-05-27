@@ -26,6 +26,7 @@ const bookSchema = yup.object().shape({
   category: yup.string().required("Category is required"),
   country: yup.string().required("Country is required"),
   tags: yup.string().required("Tags are required"),
+	buyMeACoffeeLink: yup.string().url("Must be a valid URL").nullable(),
   status: yup.string().required("Status is required"),
   bookImage: yup
     .mixed()
@@ -59,6 +60,7 @@ function EditBook() {
       country: "",
       tags: "Action",
       status: "ongoing",
+			buyMeACoffeeLink: "",
       bookImage: null,
     },
   });
@@ -83,6 +85,7 @@ function EditBook() {
         setValue("country", book.country || "");
         setValue("tags", book.tags.join(","));
         setValue("status", book.status);
+				setValue("buyMeACoffeeLink", book.buyMeACoffeeLink || "");
       
         // show existing image
         setPreviewUrl(book.bookImage || null);
@@ -95,6 +98,7 @@ function EditBook() {
           country: book.country || "",
           tags: book.tags.join(","),
           status: book.status,
+					buyMeACoffeeLink: book.buyMeACoffeeLink || "",
           bookImage: book.bookImage || null,
         });
 
@@ -172,6 +176,10 @@ function EditBook() {
 		};
 
     formData.append("status", data.status);
+		// Append link (even if empty, to allow deletion)
+    if (data.buyMeACoffeeLink !== undefined) {
+      formData.append("buyMeACoffeeLink", data.buyMeACoffeeLink);
+    }
 
 		// Append file only if user selected a new one
 		if (data.bookImage && data.bookImage.length > 0) {
@@ -202,6 +210,7 @@ function EditBook() {
       setValue("country", updated.country || "");
 			setValue("tags", updated.tags.join(","));
 			setValue("status", updated.status);
+			setValue("buyMeACoffeeLink", updated.buyMeACoffeeLink || "");
 
 			// Show the new image if updated  (or null if removed)
 			setPreviewUrl(updated.bookImage || null);
@@ -215,6 +224,8 @@ function EditBook() {
         tags: updated.tags.join(","),
         status: updated.status,
         bookImage: updated.bookImage || null,
+				// Update setInitialBookData payload too
+				buyMeACoffeeLink: updated.buyMeACoffeeLink || "",
       });
 
 			// Redirect after a short delay
@@ -454,6 +465,17 @@ function EditBook() {
               </div>
               {errors.status && <p className="text-red-500">{errors.status.message}</p>}
             </div>
+          </div>
+
+					<div className="col-span-2">
+            <label htmlFor="buyMeACoffeeLink" className="block mb-1 font-semibold text-white text-sm">Link To The Complete Ebook</label>
+            <input
+              type="url"
+              placeholder="https://buymeacoffee.com/..."
+              {...register("buyMeACoffeeLink")}
+              className="w-full p-2 rounded-xl text-white outline-none focus:outline-[#FFD700] bg-[#090a0b]"
+            />
+            {errors.buyMeACoffeeLink && <p className="text-red-500">{errors.buyMeACoffeeLink.message}</p>}
           </div>
           
           <div>
