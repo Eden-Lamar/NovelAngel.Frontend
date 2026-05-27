@@ -4,6 +4,7 @@ import { startCase, truncate, capitalize } from 'lodash';
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { FaHeart, FaRegEye, FaBookOpen, FaBookReader, FaLock, FaUnlock, FaEdit, FaBookmark } from "react-icons/fa";
 import { RiArrowDownWideFill, RiStickyNoteAddFill, RiFileEditFill, RiRobot2Fill } from "react-icons/ri";
+import { GrDownload } from "react-icons/gr";
 import { LuTrash2 } from "react-icons/lu";
 import { GiTwoCoins } from "react-icons/gi";
 // import { PiBooksDuotone } from "react-icons/pi";
@@ -351,6 +352,23 @@ function BookDetails() {
 
                             <div>
 
+												{/* NEW: Buy Complete Ebook Button */}
+												<div className="w-full flex justify-end">
+													{book?.buyMeACoffeeLink && (
+															<div className="mt-4 mb-2 w-full sm:w-auto animate__animated animate__fadeIn">
+																<a 
+																			href={book.buyMeACoffeeLink} 
+																			target="_blank" 
+																			rel="noopener noreferrer" 
+																			className="btn btn-outline btn-warning glass-shimmer-effect w-full flex items-center justify-center gap-2 whitespace-nowrap px-6 "
+																	>
+																		<GrDownload className="text-lg" /> 
+																		<span>Buy Complete Ebook Now</span>
+																	</a>
+															</div>
+													)}
+												</div>
+
 												<div className="card-actions mt-2 flex items-center justify-between">
 													{/* Country Flag */}
 													{book.country && (
@@ -405,6 +423,10 @@ function BookDetails() {
                                 </button>
                             </div>
                 </div>
+
+								
+
+								<div className="tabs tabs-boxed mt-4 "></div>
 
                 {/* Right Div: Title and Tabs */}
                 <div className="w-full lg:w-2/3">
