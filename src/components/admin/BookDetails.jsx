@@ -593,16 +593,29 @@ function BookDetails() {
 
 																																			{/* Text */}
 																																			<div className="flex-1 min-w-0">
-																																					<div className="font-medium text-white break-words">
-																																							Chapter {chapter.chapterNo}: {startCase(chapter.title)}
-																																					</div>
-																																					<div className="text-sm font-light mt-1">
-																																							<span className="text-gray-300">Released: </span>
-																																							<span className="text-xs text-[#b9b9b9] font-normal">
-																																									{formatDate(chapter.createdAt).fullDate}
-																																							</span>
-																																					</div>
-																																			</div>
+																																						<div className="font-medium text-white break-words">
+																																								Chapter {chapter.chapterNo}: {startCase(chapter.title)}
+																																						</div>
+																																						
+																																						{/* MODIFIED: Dynamically show Specific Schedule vs Normal Release */}
+																																						<div className="text-sm font-light mt-1">
+																																								{chapter.isLocked && chapter.scheduledReleaseDate ? (
+																																										<>
+																																												<span className="text-yellow-500 text-xs">Scheduled (WAT): </span>
+																																												<span className="text-xs text-[#b9b9b9] font-normal">
+																																														{formatDate(chapter.scheduledReleaseDate).fullDate} at {new Date(chapter.scheduledReleaseDate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+																																												</span>
+																																										</>
+																																								) : (
+																																										<>
+																																												<span className="text-gray-300">Released: </span>
+																																												<span className="text-xs text-[#b9b9b9] font-normal">
+																																														{formatDate(chapter.createdAt).fullDate}
+																																												</span>
+																																										</>
+																																								)}
+																																						</div>
+																																				</div>
 																																	</div>
 																															</td>
 
