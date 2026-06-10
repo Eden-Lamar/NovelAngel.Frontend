@@ -45,12 +45,26 @@ const chapterSchema = yup.object().shape({
   title: yup.string().required("Title is required").min(3, "Too Short!").max(1000, "Too long"),
   content: yup.string().required("Content is required").min(20, "Content must be at least 20 characters"),
   isLocked: yup.boolean(),
+  scheduledReleaseDate: yup.string().nullable().notRequired(),
   coinCost: yup.number().when("isLocked", {
     is: true,
     then: (schema) => schema.required("Coin cost is required for locked chapters").oneOf([10, 20, 30, 40, 50, 60]),
     otherwise: (schema) => schema.notRequired().transform(() => 0),
   }),
 });
+
+// NEW HELPER: Formats MongoDB Date to YYYY-MM-DDTHH:mm for datetime-local input
+const formatDateTimeLocal = (dateStr) => {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "";
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
 
 function EditChapter() {
   const { bookId, chapterId } = useParams();
@@ -79,6 +93,7 @@ function EditChapter() {
       title: "",
       content: "",
       isLocked: false,
+      scheduledReleaseDate: "",
       coinCost: 0,
     },
   });
@@ -133,6 +148,7 @@ function EditChapter() {
           title: chapterData.title,
           content: formattedContent,
           isLocked: chapterData.isLocked,
+          scheduledReleaseDate: formatDateTimeLocal(chapterData.scheduledReleaseDate), // Pre-fill specific schedule if it exists
           coinCost: chapterData.coinCost || 0,
         });
         
@@ -161,6 +177,7 @@ function EditChapter() {
           content: data.content, // Quill will now output valid HTML since it received valid HTML
           isLocked: data.isLocked,
           coinCost: data.isLocked ? data.coinCost : 0,
+          scheduledReleaseDate: data.isLocked && data.scheduledReleaseDate ? data.scheduledReleaseDate : null
         }
       );
 
@@ -177,6 +194,11 @@ function EditChapter() {
       setLoading(false);
     }
   };
+
+  // Calculate minimum datetime for scheduling (current time in WAT)
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  const minDateTime = now.toISOString().slice(0, 16);
 
   if (fetchLoading) {
     return (
@@ -304,23 +326,40 @@ function EditChapter() {
 
                 {/* Coin Selection (Conditional) */}
                 {watch("isLocked") && (
-                    <div className="animate__animated animate__fadeIn">
-                        <label className="label">
-                            <span className="label-text font-semibold">Unlock Cost (Coins)</span>
-                        </label>
-                        <div className="flex flex-wrap gap-2">
-                            {coinOptions.map((cost) => (
-                            <button
-                                key={cost}
-                                type="button"
-                                onClick={() => setValue("coinCost", cost, { shouldValidate: true })}
-                                className={`btn btn-sm ${watch("coinCost") === cost ? "btn-info text-white" : "btn-outline"}`}
-                            >
-                                <GiTwoCoins /> {cost}
-                            </button>
-                            ))}
+                    <div className="animate__animated animate__fadeIn flex-1 flex flex-col gap-6">
+                        <div>
+                            <label className="label">
+                                <span className="label-text font-semibold">Unlock Cost (Coins)</span>
+                            </label>
+                            <div className="flex flex-wrap gap-2">
+                                {coinOptions.map((cost) => (
+                                <button
+                                    key={cost}
+                                    type="button"
+                                    onClick={() => setValue("coinCost", cost, { shouldValidate: true })}
+                                    className={`btn btn-sm ${watch("coinCost") === cost ? "btn-info text-white" : "btn-outline"}`}
+                                >
+                                    <GiTwoCoins /> {cost}
+                                </button>
+                                ))}
+                            </div>
+                            {errors.coinCost && <span className="text-red-500 text-sm mt-1">{errors.coinCost.message}</span>}
                         </div>
-                        {errors.coinCost && <span className="text-red-500 text-sm">{errors.coinCost.message}</span>}
+
+                        {/* NEW: Specific Release Date Picker */}
+                        <div className="border-t border-gray-700 pt-4">
+                            <label className="label">
+                                <span className="label-text font-semibold">
+                                  Scheduled Auto-Unlock Date  <span className="text-gray-400 font-normal ml-1">(WAT / Lagos Time)</span>
+                                </span>
+                            </label>
+                            <input
+                              type="datetime-local"
+                              {...register("scheduledReleaseDate")}
+                              className="input input-bordered w-full md:w-1/2 bg-slate-500 text-black focus:border-cyan-500"
+                              min={minDateTime}
+                            />
+                        </div>
                     </div>
                 )}
             </div>
