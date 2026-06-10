@@ -48,6 +48,7 @@ const chapterSchema = yup.object().shape({
   title: yup.string().required("Title is required").min(3, "Too Short!").max(1000, "Too long"),
   content: yup.string().required("Content is required").min(20, "Content must be at least 20 characters"),
   isLocked: yup.boolean(),
+  scheduledReleaseDate: yup.string().nullable().notRequired(),
 	coinCost: yup.number().when("isLocked", {
     is: true,
     then: schema => schema.required("Coin cost is required for locked chapters").oneOf([10, 20, 30, 40, 50, 60]),
@@ -71,6 +72,7 @@ function AddChapter() {
 			title: "",
 			content: "",
 			isLocked: false,
+      scheduledReleaseDate: "",
 			coinCost: 10, // default to 10
 		},
   });
@@ -97,7 +99,7 @@ function AddChapter() {
             "Cache-Control": "no-cache", // Prevent cached response
           },
         });
-        console.log("Book data fetched successfully:", response.data);
+        // console.log("Book data fetched successfully:", response.data);
         if (!response.data.data) {
           throw new Error("Book data not found in response");
         }
@@ -111,6 +113,7 @@ function AddChapter() {
           title: "",
           content: "",
           isLocked: (response.data.data.chapters.length + 1) > response.data.data.freeChapters,
+          scheduledReleaseDate: "",
 					coinCost: (response.data.data.chapters.length + 1) > response.data.data.freeChapters ? 10 : 0
         });
       } catch (err) {
@@ -118,7 +121,7 @@ function AddChapter() {
           ? "Book not found. Please check the book ID."
           : err.message || "Failed to load book details.";
         setFetchError(errorMessage);
-        console.error("Error fetching book data:", errorMessage);
+        // console.error("Error fetching book data:", errorMessage);
       } finally {
         setFetchLoading(false); // End loading
       }
@@ -140,10 +143,12 @@ function AddChapter() {
           title: data.title,
           content: data.content, // This will now be an HTML string because of react-quill
           isLocked: data.isLocked,
-					coinCost:  data.isLocked ? data.coinCost : 0
+					coinCost:  data.isLocked ? data.coinCost : 0,
+          // NEW: Include specific schedule
+          scheduledReleaseDate: data.isLocked && data.scheduledReleaseDate ? data.scheduledReleaseDate : null
         }
       );
-      console.log("Chapter created successfully:", response.data);
+      // console.log("Chapter created successfully:", response.data);
       setSuccess("Chapter created successfully!");
       setError(null); // Clear any previous errors
       // Update chapters and chapter count
@@ -152,6 +157,7 @@ function AddChapter() {
       reset({
         title: "",
         content: "",
+        scheduledReleaseDate: "",
         isLocked: (chapterCount + 2) > book.freeChapters,
 				coinCost: (chapterCount + 1) > book.freeChapters ? 10 : 0
       });
@@ -160,7 +166,7 @@ function AddChapter() {
     } catch (err) {
       const errorMessage = err.response?.data?.error || "Failed to create chapter. Please try again.";
       setError(errorMessage);
-      console.error("Error creating chapter:", errorMessage);
+      // console.error("Error creating chapter:", errorMessage);
       setSuccess(null); // Clear any previous success message
     } finally {
       setLoading(false); // Hide spinner
@@ -181,6 +187,11 @@ function AddChapter() {
 	
 	// Coin cost options
   const coinOptions = [10, 20, 30, 40, 50, 60];
+
+  // Calculate current local time for the 'min' attribute
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  const minDateTime = now.toISOString().slice(0, 16);
 
   return (
     <div className="relative add-chapter-form p-6">
@@ -340,30 +351,46 @@ function AddChapter() {
           </div>
 
 					{watch("isLocked") && (
-						<div>
-							<label htmlFor="coinCost" className="block mb-1 font-semibold">Select Coin Cost</label>
-							<div className="grid grid-cols-3 gap-3">
-								{coinOptions.map((cost) => (
-									<button
-										key={cost}
-										type="button"
-										onClick={() => setValue("coinCost", cost, {shouldValidate: true})}
-										className={`text-base btn  
-											${watch("coinCost") === cost 
-												? "btn-info" 
-												: "btn-outline btn-ghost"
-											}`}
-											disabled={fetchLoading || !!fetchError}
-										aria-label={`Set coin cost to ${cost}`}
-									>
-										<GiTwoCoins className="mr-1"/>
-										{cost}
-									</button>
-								))}
-							</div>
-							{errors.coinCost && <p className="text-red-500">{errors.coinCost.message}</p>}
-						</div>
-					)}
+            <div className="bg-gray-800/50 p-4 rounded-xl border border-gray-700 space-y-4">
+              <div>
+                <label htmlFor="coinCost" className="block mb-1 font-semibold">Select Coin Cost</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {coinOptions.map((cost) => (
+                    <button
+                      key={cost}
+                      type="button"
+                      onClick={() => setValue("coinCost", cost, {shouldValidate: true})}
+                      className={`text-base btn  
+                        ${watch("coinCost") === cost 
+                          ? "btn-info text-white" 
+                          : "btn-outline btn-ghost"
+                        }`}
+                        disabled={fetchLoading || !!fetchError}
+                      aria-label={`Set coin cost to ${cost}`}
+                    >
+                      <GiTwoCoins className="mr-1"/>
+                      {cost}
+                    </button>
+                  ))}
+                </div>
+                {errors.coinCost && <p className="text-red-500 mt-1">{errors.coinCost.message}</p>}
+              </div>
+
+              {/* NEW: Specific Release Date Picker */}
+              <div className="border-t border-gray-600 pt-4 mt-4">
+                <label className="block mb-1 font-semibold">
+                  Schedule Auto-Unlock Date <span className="text-gray-400 font-normal text-sm">(WAT / Lagos Time)</span>
+                </label>
+                <input
+                  type="datetime-local"
+                  {...register("scheduledReleaseDate")}
+                  className="w-full p-2 rounded text-black outline-none bg-slate-500"
+                  disabled={fetchLoading || !!fetchError}
+                  min={minDateTime}
+                />
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="flex items-center gap-2">
