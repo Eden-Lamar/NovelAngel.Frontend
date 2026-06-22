@@ -188,10 +188,15 @@ function AddChapter() {
 	// Coin cost options
   const coinOptions = [10, 20, 30, 40, 50, 60];
 
-  // Calculate current local time for the 'min' attribute
-  const now = new Date();
-  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-  const minDateTime = now.toISOString().slice(0, 16);
+  // Calculate current New York time for the 'min' attribute
+  const nyTime = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
+  const year = nyTime.getFullYear();
+  const month = String(nyTime.getMonth() + 1).padStart(2, '0');
+  const day = String(nyTime.getDate()).padStart(2, '0');
+  const hours = String(nyTime.getHours()).padStart(2, '0');
+  const minutes = String(nyTime.getMinutes()).padStart(2, '0');
+  
+  const minDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
 
   return (
     <div className="relative add-chapter-form p-6">
@@ -379,7 +384,7 @@ function AddChapter() {
               {/* NEW: Specific Release Date Picker */}
               <div className="border-t border-gray-600 pt-4 mt-4">
                 <label className="block mb-1 font-semibold">
-                  Schedule Auto-Unlock Date <span className="text-gray-400 font-normal text-sm">(WAT / Lagos Time)</span>
+                  Schedule Auto-Unlock Date <span className="text-gray-400 font-normal text-sm">(EST / New York Time)</span>
                 </label>
                 <input
                   type="datetime-local"
