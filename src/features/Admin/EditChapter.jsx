@@ -195,10 +195,15 @@ function EditChapter() {
     }
   };
 
-  // Calculate minimum datetime for scheduling (current time in WAT)
-  const now = new Date();
-  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-  const minDateTime = now.toISOString().slice(0, 16);
+  // Calculate current New York time for the 'min' attribute
+  const nyTime = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
+  const year = nyTime.getFullYear();
+  const month = String(nyTime.getMonth() + 1).padStart(2, '0');
+  const day = String(nyTime.getDate()).padStart(2, '0');
+  const hours = String(nyTime.getHours()).padStart(2, '0');
+  const minutes = String(nyTime.getMinutes()).padStart(2, '0');
+  
+  const minDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
 
   if (fetchLoading) {
     return (
@@ -350,7 +355,7 @@ function EditChapter() {
                         <div className="border-t border-gray-700 pt-4">
                             <label className="label">
                                 <span className="label-text font-semibold">
-                                  Scheduled Auto-Unlock Date  <span className="text-gray-400 font-normal ml-1">(WAT / Lagos Time)</span>
+                                  Scheduled Auto-Unlock Date  <span className="text-gray-400 font-normal ml-1">(EST / New York Time)</span>
                                 </span>
                             </label>
                             <input
