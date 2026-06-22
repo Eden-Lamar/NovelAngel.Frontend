@@ -601,7 +601,7 @@ function BookDetails() {
 																																						<div className="text-sm font-light mt-1">
 																																								{chapter.isLocked && chapter.scheduledReleaseDate ? (
 																																										<>
-																																												<span className="text-yellow-500 text-xs">Scheduled (WAT): </span>
+																																												<span className="text-yellow-500 text-xs">Scheduled (EST / NYC): </span>
 																																												<span className="text-xs text-[#b9b9b9] font-normal">
 																																														{formatDate(chapter.scheduledReleaseDate).fullDate} at {new Date(chapter.scheduledReleaseDate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
 																																												</span>
@@ -741,7 +741,7 @@ function BookDetails() {
                             {/* Time Picker Input */}
                             <div className="form-control">
                                 <label className="label">
-                                    <span className="label-text text-gray-300 font-medium">Release Time (WAT - Africa/Lagos)</span>
+                                    <span className="label-text text-gray-300 font-medium">Release Time (EST / New York Time)</span>
                                 </label>
                                 <input 
                                     type="time" 
