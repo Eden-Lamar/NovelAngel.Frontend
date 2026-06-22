@@ -395,7 +395,7 @@ function Books() {
                             {/* Time Picker Input */}
                             <div className="form-control">
                                 <label className="label">
-                                    <span className="label-text text-gray-300 font-medium">Release Time (WAT - Africa/Lagos)</span>
+                                    <span className="label-text text-gray-300 font-medium">Release Time (EST / New York Time)</span>
                                 </label>
                                 <input 
                                     type="time" 
