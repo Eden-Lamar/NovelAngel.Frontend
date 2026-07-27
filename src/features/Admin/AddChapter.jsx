@@ -89,6 +89,9 @@ function AddChapter() {
   const [fetchError, setFetchError] = useState(null);
   const [fetchLoading, setFetchLoading] = useState(true);
 
+  // --- NEW: State to hold the actual MongoDB ID ---
+  const [realBookId, setRealBookId] = useState(null);
+
   // Fetch book details (including chapters)
   useEffect(() => {
     const fetchBookData = async () => {
@@ -104,6 +107,10 @@ function AddChapter() {
           throw new Error("Book data not found in response");
         }
         setBook(response.data.data);
+
+        // --- NEW: Save the real ID ---
+        setRealBookId(response.data.data._id)
+
         setChapters(response.data.data.chapters);
         setChapterCount(response.data.data.chapters.length);
         setFetchError(null);
@@ -138,7 +145,7 @@ function AddChapter() {
     setLoading(true); // Show spinner
     try {
       const response = await api.post(
-        `/admin/books/${bookId}/chapters`,
+        `/admin/books/${realBookId || bookId}/chapters`,
         {
           title: data.title,
           content: data.content, // This will now be an HTML string because of react-quill
