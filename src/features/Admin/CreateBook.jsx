@@ -22,7 +22,11 @@ const bookSchema = yup.object().shape({
   author: yup.string().required("Author is required").min(3, 'Too short').max(100, 'Too long'),
   description: yup.string().required("Description is required").min(20, 'Too short').max(6000, 'Too long'),
   category: yup.string().required("Category is required"),
-	buyMeACoffeeLink: yup.string().url("Must be a valid URL").nullable(),
+	buyMeACoffeeLink: yup.string()
+    .transform((value) => (value === "" ? null : value))
+    .nullable()
+    .url("Must be a valid URL"),
+    
   country: yup.string().required("Country is required"),
   tags: yup.string().required("Tags are required"),
   bookImage: yup
@@ -78,6 +82,7 @@ function CreateBook() {
     formData.append("category", data.category);
     formData.append("country", data.country)
     formData.append("tags", data.tags); // Already a comma-separated string
+    formData.append("status", "ongoing");
 		// Append the link if it exists
     if (data.buyMeACoffeeLink) {
       formData.append("buyMeACoffeeLink", data.buyMeACoffeeLink);
@@ -90,7 +95,7 @@ function CreateBook() {
         formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
+            // "Content-Type": "multipart/form-data",
             "Authorization": `Bearer ${auth?.token}`,
           },
         }
@@ -100,9 +105,10 @@ function CreateBook() {
       setError(null); // Clear any previous errors
       reset(); // Reset form fields
 
-      // Redirect to add-chapter with bookId
+      // Redirect to add-chapter with with slug (fallback to _id)
       setTimeout(() => {
-        navigate(`/admin/add-chapter/${response.data.data._id}`);
+        const newBook = response.data.data;
+        navigate(`/admin/add-chapter/${newBook.slug || newBook._id}`);
       }, 3000); // Delay redirect to show success message
 
     } catch (err) {
