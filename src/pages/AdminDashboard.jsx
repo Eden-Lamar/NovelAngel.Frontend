@@ -208,7 +208,7 @@ function AdminDashboard() {
                     ))
                     ) : (
                         books.map((book) => (
-                            <Link to={`/admin/books/${book._id}`} key={book._id} className="relative flex flex-col w-44 flex-shrink-0 shadow-xl rounded-xl group">
+                            <Link to={`/admin/books/${book.slug || book._id}`} key={book._id} className="relative flex flex-col w-44 flex-shrink-0 shadow-xl rounded-xl group">
                                 <div className="relative overflow-hidden aspect-[3/4] w-full rounded-xl">
                                     <img
                                         src={book.bookImage}
