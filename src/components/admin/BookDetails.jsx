@@ -43,35 +43,47 @@ function BookDetails() {
         const fetchBook = async () => {
             setLoading(true);
             try {
-                const [bookResponse, likeResponse, bookmarkResponse] = await Promise.all([
-                    api.get(`/books/${id}`),
+                // 1. Fetch book first using the ID or Slug from the URL
+                const bookResponse = await api.get(`/books/${id}`);
+                const fetchedBook = bookResponse.data.data;
+
+                // --- NEW: Redirect to slug URL if using an old ID ---
+                if (fetchedBook.slug && id !== fetchedBook.slug) {
+                    navigate(`/admin/books/${fetchedBook.slug}`, { replace: true });
+                    return; // Stop execution, the new route will load fresh
+                }
+
+                // 2. Extract real ID for auth-dependent endpoints
+                const realId = fetchedBook._id;
+
+                // 3. Fetch like and bookmark statuses
+                const [likeResponse, bookmarkResponse] = await Promise.all([
                     auth?.token
-                        ? api.get(`/books/${id}/like-status`, {
-														headers: { Authorization: `Bearer ${auth?.token}` }
-												})
+                        ? api.get(`/books/${realId}/like-status`, {
+                            headers: { Authorization: `Bearer ${auth.token}` }
+                        })
                         : Promise.resolve({ data: { isLiked: false } }),
                     auth?.token
-                        ? api.get(`/books/${id}/bookmark-status`, {
-                              headers: { Authorization: `Bearer ${auth?.token}` }
+                        ? api.get(`/books/${realId}/bookmark-status`, {
+                              headers: { Authorization: `Bearer ${auth.token}` }
                           })
                         : Promise.resolve({ data: { isBookmarked: false } })
                 ]);
-                // console.log("Book details response:", bookResponse.data);
-                setBook(bookResponse.data.data);
+
+                setBook(fetchedBook);
                 setIsLiked(likeResponse.data.isLiked);
                 setIsBookmarked(bookmarkResponse.data.isBookmarked);
-                setPrevLikeCount(bookResponse.data.data.likeCount);
+                setPrevLikeCount(fetchedBook.likeCount);
                 setError(null);
             } catch (err) {
                 const errorMessage = err.response?.data?.message || "Failed to load book details.";
                 setError(errorMessage);
-                // console.error("Error fetching book details:", errorMessage);
             } finally {
                 setLoading(false);
             }
         };
         fetchBook();
-    }, [id, auth?.token]);
+    }, [id, auth?.token, navigate]);
 				
     // Clear error after 10 seconds
     useEffect(() => {
@@ -101,7 +113,7 @@ function BookDetails() {
 
 			try {
 				const response = await api.post(
-					`/books/${id}/toggle-like`,
+					`/books/${book._id}/toggle-like`,
 					{},
 					{ headers: { Authorization: `Bearer ${auth?.token}` } }
 				);
@@ -129,7 +141,7 @@ function BookDetails() {
         setIsBookmarked(!isBookmarked);
         try {
             await api.post(
-                `/books/${id}/toggle-bookmark`,
+                `/books/${book._id}/toggle-bookmark`,
                 {},
                 { headers: { Authorization:  `Bearer ${auth?.token}` } }
             );
@@ -146,7 +158,7 @@ function BookDetails() {
 		const handleDelete = async () => {
 			setDeleteLoading(true);
 			try {
-					await api.delete(`/admin/books/${id}`, {
+					await api.delete(`/admin/books/${book._id}`, {
 							headers: { Authorization: `Bearer ${auth?.token}` }
 					});
 					setError(null);
@@ -172,7 +184,7 @@ function BookDetails() {
     const handleSaveUnlockSettings = async () => {
         setIsSavingUnlock(true);
         try {
-            await api.patch(`/books/${id}/toggle-auto-unlock`, unlockSettings, {
+            await api.patch(`/books/${book._id}/toggle-auto-unlock`, unlockSettings, {
                 headers: { Authorization: `Bearer ${auth?.token}` }
             });
             // Update the local state with the new values
@@ -386,7 +398,7 @@ function BookDetails() {
 													)}
 
                         {/* Start Reading button */}
-                                    <Link to={`/admin/books/${book._id}/read`} className="btn btn-outline btn-info flex items-center">
+                                    <Link to={`/admin/books/${book.slug || book._id}/read`} className="btn btn-outline btn-info flex items-center">
                                         <FaBookOpen className="mr-2" /> Start Reading
                                     </Link>
                                 </div>
@@ -499,7 +511,7 @@ function BookDetails() {
                                         </button>
 
                                         <Link
-                                            to={`/admin/books/${book._id}/edit`}
+                                            to={`/admin/books/${book.slug || book._id}/edit`}
                                             className="btn btn-outline btn-info btn-sm flex items-center whitespace-nowrap"
                                             aria-label="Edit book"
                                         >
@@ -556,14 +568,14 @@ function BookDetails() {
 																							
 																							<div className="flex gap-4">
 																								<Link
-																										to={`/admin/add-chapter/${book._id}`}
+																										to={`/admin/add-chapter/${book.slug || book._id}`}
 																										className="btn btn-outline btn-success btn-sm w-full sm:w-auto"
 																								>
 																										<RiStickyNoteAddFill className="text-lg" />
 																										<span>Add Chapter</span>
 																								</Link>
 
-																								<Link to={`/admin/books/${book._id}/agent`} className="btn btn-outline btn-primary btn-sm w-full sm:w-auto">
+																								<Link to={`/admin/books/${book.slug || book._id}/agent`} className="btn btn-outline btn-primary btn-sm w-full sm:w-auto">
 																									<RiRobot2Fill className="mr-2"/> Agent Console
 																								</Link>
 
@@ -627,7 +639,7 @@ function BookDetails() {
 																																	<div className="flex justify-end gap-2">
 																																			{/* EDIT BUTTON */}
 																																			<Link
-																																					to={`/admin/books/${book._id}/chapters/${chapter._id}/edit`}
+																																					to={`/admin/books/${book.slug || book._id}/chapters/${chapter._id}/edit`}
 																																					className="btn btn-outline btn-accent btn-sm"
 																																					title="Edit Chapter"
 																																			>
@@ -636,7 +648,7 @@ function BookDetails() {
 
 																																			{/* READ BUTTON */}
 																																			<Link
-																																					to={`/admin/books/${book._id}/read?chapterId=${chapter._id}`}
+																																					to={`/admin/books/${book.slug || book._id}/read?chapterNo=${chapter.chapterNo}`}
 																																					className="btn btn-outline btn-info btn-sm min-w-[80px]"
 																																					title="Read Chapter"
 																																			>
