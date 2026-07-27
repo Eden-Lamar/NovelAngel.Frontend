@@ -213,7 +213,7 @@ function Books() {
                                 {/* Edit/schedule/Delete overlay buttons */}
                                 <div className="absolute top-2 left-1/2 transform -translate-x-1/2 flex justify-between opacity-100 transition-opacity duration-300 px-4 z-30 w-full">
                                     <Link
-                                        to={`/admin/books/${book._id}/edit`}
+                                        to={`/admin/books/${book.slug || book._id}/edit`}
                                         className="badge badge-outline text-blue-500 hover:bg-blue-500 hover:text-black hover:border-blue-500 transition-colors duration-300"
                                         aria-label="Edit book"
                                         onClick={(e) => e.stopPropagation()}
@@ -264,7 +264,7 @@ function Books() {
                             <div className="card-body p-3 w-1/2 flex flex-col justify-between">
                                 <div className="">
                                     <Tippy content={startCase(book.title)} placement="top" arrow={false}>
-                                        <Link to={`/admin/books/${book._id}`}>
+                                        <Link to={`/admin/books/${book.slug || book._id}`}>
                                             <h2 className="card-title text-base text-white cursor-pointer group-hover:text-transparent bg-clip-text bg-gradient-to-r from-gold to-cyan-500">
                                                 {truncate(startCase(book.title))}
                                             </h2>
