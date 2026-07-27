@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "../../api/axios";
 import { startCase } from 'lodash';
-import { useParams, useSearchParams, Link } from "react-router-dom";
+import { useParams, useSearchParams, Link, useNavigate } from "react-router-dom";
 import { FaBookOpen, FaLock } from "react-icons/fa";
 import { RiArrowLeftSLine, RiArrowRightSLine, RiSettings3Line, RiCloseLine  } from "react-icons/ri";
 import { GiTwoCoins } from "react-icons/gi";
@@ -13,9 +13,11 @@ import { useAuth } from "../../context/AuthContext";
 
 function BookReader() {
     const { auth } = useAuth(); // Get auth context for token
+		const navigate = useNavigate();
     const { bookId } = useParams();
+		const [realBookId, setRealBookId] = useState(null);
     const [searchParams, setSearchParams] = useSearchParams();
-    const chapterId = searchParams.get('chapterId');
+    const currentChapterParam = searchParams.get('chapterNo') || searchParams.get('chapterId');
     const [chapterData, setChapterData] = useState(null);
     const [bookChapters, setBookChapters] = useState([]);
 		const [bookLink, setBookLink] = useState(null);
@@ -44,31 +46,48 @@ function BookReader() {
         const fetchData = async () => {
             setLoading(true);
             try {
-                // Fetch book to get chapters array
+                // 1. Fetch book first
                 const bookResponse = await api.get(`/books/${bookId}`, {
                     headers: { Authorization: `Bearer ${auth?.token}` }
                 });
-                setBookChapters(bookResponse.data.data.chapters);
-								setBookLink(bookResponse.data.data.buyMeACoffeeLink);
+                const fetchedBook = bookResponse.data.data;
 
-                // Fetch chapter if chapterId is provided
-                if (chapterId) {
-                    const chapterResponse = await api.get(`/books/${bookId}/chapters/${chapterId}`, {
+                // --- NEW: Redirect if using old ID, preserving chapterId query ---
+                if (fetchedBook.slug && bookId !== fetchedBook.slug) {
+                    const currentParams = searchParams.toString();
+                    navigate(`/admin/books/${fetchedBook.slug}/read${currentParams ? `?${currentParams}` : ''}`, { replace: true });
+                    return; 
+                }
+
+                // 2. Save the real ID to state to use in other functions
+                const actualId = fetchedBook._id;
+                setRealBookId(actualId);
+
+                setBookChapters(fetchedBook.chapters);
+                setBookLink(fetchedBook.buyMeACoffeeLink);
+
+                // 3. Fetch chapter using the params (number or ID)
+                if (currentChapterParam) {
+                    const chapterResponse = await api.get(`/books/${actualId}/chapters/${currentChapterParam}`, {
                         headers: { Authorization: `Bearer ${auth?.token}` }
                     });
                     setChapterData(chapterResponse.data.data);
-                    const index = bookResponse.data.data.chapters.findIndex(ch => ch._id === chapterId);
-                    setCurrentChapterIndex(index);
+										
+										// Find the index by matching either the chapterNo or the _id
+                    const index = fetchedBook.chapters.findIndex(ch => ch.chapterNo.toString() === currentChapterParam.toString() || ch._id === currentChapterParam);
+                    setCurrentChapterIndex(index !== -1 ? index : 0);
                 } else {
                     // Default to first chapter
-                    const firstChapter = bookResponse.data.data.chapters[0];
+                    const firstChapter = fetchedBook.chapters[0];
                     if (firstChapter) {
-                        const chapterResponse = await api.get(`/books/${bookId}/chapters/${firstChapter._id}`, {
-                            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                        const chapterResponse = await api.get(`/books/${actualId}/chapters/${firstChapter.chapterNo}`, {
+                            headers: { Authorization: `Bearer ${auth?.token}` }
                         });
                         setChapterData(chapterResponse.data.data);
                         setCurrentChapterIndex(0);
-                        setSearchParams({ chapterId: firstChapter._id });
+                        
+                        // CHANGED: Set chapterNo in the URL instead of ID
+                        setSearchParams({ chapterNo: firstChapter.chapterNo });
                     }
                 }
                 setError(null);
@@ -81,7 +100,7 @@ function BookReader() {
             }
         };
         fetchData();
-    }, [bookId, chapterId, setSearchParams, auth?.token]);
+    }, [bookId, currentChapterParam, setSearchParams, auth?.token, navigate, searchParams]);
 
     // Clear error after 5 seconds
     useEffect(() => {
@@ -99,15 +118,18 @@ function BookReader() {
         setUnlockLoading(true);
         setUnlockError(null);
         try {
+					// CHANGED: Grab the real MongoDB ID from the loaded chapter data
+          const actualChapterId = chapterData.chapter._id;
+
 							await api.post(
-                `/books/${bookId}/chapters/${chapterId}/unlock`,
+                `/books/${realBookId}/chapters/${actualChapterId}/unlock`,
                 {},
                 {
                     headers: { Authorization: `Bearer ${auth?.token}` }
                 }
             );
             // Refetch chapter to update isLocked status
-            const chapterResponse = await api.get(`/books/${bookId}/chapters/${chapterId}`, {
+            const chapterResponse = await api.get(`/books/${realBookId}/chapters/${currentChapterParam}`, {
                 headers: { Authorization: `Bearer ${auth?.token}` }
             });
             setChapterData(chapterResponse.data.data);
@@ -126,7 +148,8 @@ function BookReader() {
     const handleNavigation = (direction) => {
         const newIndex = direction === 'next' ? currentChapterIndex + 1 : currentChapterIndex - 1;
         if (newIndex >= 0 && newIndex < bookChapters.length) {
-            setSearchParams({ chapterId: bookChapters[newIndex]._id });
+            // CHANGED: Use chapterNo for navigation
+            setSearchParams({ chapterNo: bookChapters[newIndex].chapterNo });
         }
     };
 
