@@ -49,6 +49,7 @@ function EditBook() {
   const [fetchLoading, setFetchLoading] = useState(true);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [initialBookData, setInitialBookData] = useState(null); // Store initial book data
+  const [realBookId, setRealBookId] = useState(null);
 
   const { register, handleSubmit, control, setValue, formState: { errors, isDirty }, watch } = useForm({
     resolver: yupResolver(bookSchema),
@@ -78,6 +79,10 @@ function EditBook() {
       try {
         const response = await api.get(`/books/${bookId}`);
         const book = response.data.data;
+
+        // --- NEW: Save the real ID ---
+        setRealBookId(book._id);
+
         setValue("title", book.title);
         setValue("author", book.author);
         setValue("description", book.description);
@@ -189,7 +194,8 @@ function EditBook() {
     try {
 			// IMPORTANT: DO NOT set Content-Type header manually. Let the browser set boundary.
       const response = await api.put(
-        `/admin/books/${bookId}`,
+        // --- CHANGED: Use realBookId here instead of the URL param ---
+        `/admin/books/${realBookId || bookId}`,
         formData,
         {
           headers: {
@@ -229,7 +235,7 @@ function EditBook() {
       });
 
 			// Redirect after a short delay
-			setTimeout(() => navigate(`/admin/books/${bookId}`), 3000);
+			setTimeout(() => navigate(`/admin/books/${updated.slug || updated._id}`), 3000);
     } catch (err) {
       setError(err.response?.data?.error || "Failed to update book.");
       setSuccess(null);
