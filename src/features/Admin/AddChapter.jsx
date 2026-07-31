@@ -10,6 +10,7 @@ import { GiTwoCoins } from "react-icons/gi";
 import { startCase, truncate, capitalize } from 'lodash';
 import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import ScheduleDatePicker from "../../components/admin/ScheduleDatePicker";
 
 
 // 2. Register a Custom CSS Class Attribute
@@ -152,7 +153,7 @@ function AddChapter() {
           isLocked: data.isLocked,
 					coinCost:  data.isLocked ? data.coinCost : 0,
           // NEW: Include specific schedule
-          scheduledReleaseDate: data.isLocked && data.scheduledReleaseDate ? data.scheduledReleaseDate : null
+          scheduledReleaseDate: data.isLocked && data.scheduledReleaseDate ? `${data.scheduledReleaseDate}Z` : null
         }
       );
       // console.log("Chapter created successfully:", response.data);
@@ -388,19 +389,14 @@ function AddChapter() {
                 {errors.coinCost && <p className="text-red-500 mt-1">{errors.coinCost.message}</p>}
               </div>
 
-              {/* NEW: Specific Release Date Picker */}
-              <div className="border-t border-gray-600 pt-4 mt-4">
-                <label className="block mb-1 font-semibold">
-                  Schedule Auto-Unlock Date <span className="text-gray-400 font-normal text-sm">(EST / New York Time)</span>
-                </label>
-                <input
-                  type="datetime-local"
-                  {...register("scheduledReleaseDate")}
-                  className="w-full p-2 rounded text-black outline-none bg-slate-500"
-                  disabled={fetchLoading || !!fetchError}
-                  min={minDateTime}
-                />
-              </div>
+              {/* NEW: Reusable Date Picker */}
+              <ScheduleDatePicker 
+                register={register} 
+                name="scheduledReleaseDate" 
+                min={minDateTime} 
+                disabled={fetchLoading || !!fetchError} 
+                error={errors.scheduledReleaseDate} 
+              />
             </div>
           )}
 
