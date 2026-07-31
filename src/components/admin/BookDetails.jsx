@@ -21,7 +21,7 @@ function BookDetails() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showFullDescription, setShowFullDescription] = useState(false);
-    const [activeTab, setActiveTab] = useState('summary');
+    const [activeTab, setActiveTab] = useState('chapters');
 		const [isLiked, setIsLiked] = useState(false);
     const [isBookmarked, setIsBookmarked] = useState(false);
     const [likeLoading, setLikeLoading] = useState(false);
@@ -215,12 +215,14 @@ function BookDetails() {
     // Format release date get just the year and the full date
     const formatDate = (date) => {
         const fullDate = new Date(date).toLocaleDateString('en-US', {
+						timeZone: 'UTC',
             year: 'numeric',
             month: 'short',
             day: 'numeric'
         });
 
         const year = new Date(date).toLocaleDateString('en-US', {
+						timeZone: 'UTC',
             year: 'numeric'
         });
         return { fullDate, year }
@@ -545,7 +547,7 @@ function BookDetails() {
                                         <p className="text-white text-base whitespace-pre-wrap">
                                             {showFullDescription
                                                 ? book.description
-                                                : truncate(book.description, { length: 150 })}
+                                                : truncate(book.description, { length: 570 })}
                                         </p>
                                         {book.description.length > 150 && !showFullDescription && (
                                             <button
@@ -615,7 +617,7 @@ function BookDetails() {
 																																										<>
 																																												<span className="text-yellow-500 text-xs">Scheduled (EST / NYC): </span>
 																																												<span className="text-xs text-[#b9b9b9] font-normal">
-																																														{formatDate(chapter.scheduledReleaseDate).fullDate} at {new Date(chapter.scheduledReleaseDate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+																																														{formatDate(chapter.scheduledReleaseDate).fullDate} at {new Date(chapter.scheduledReleaseDate).toLocaleTimeString('en-US', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit' })}
 																																												</span>
 																																										</>
 																																								) : (
