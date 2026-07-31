@@ -10,6 +10,7 @@ import { IoChevronBack } from "react-icons/io5";
 import { startCase } from 'lodash';
 import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import ScheduleDatePicker from "../../components/admin/ScheduleDatePicker";
 // import { useAuth } from "../../context/AuthContext";
 
 // REGISTER CUSTOM "TIGHT" FORMAT (Same as AddChapter)
@@ -53,16 +54,19 @@ const chapterSchema = yup.object().shape({
   }),
 });
 
-// NEW HELPER: Formats MongoDB Date to YYYY-MM-DDTHH:mm for datetime-local input
+// NEW HELPER: Formats MongoDB Date to YYYY-MM-DDTHH:mm for datetime-local input strictly in UTC
 const formatDateTimeLocal = (dateStr) => {
   if (!dateStr) return "";
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return "";
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  const hours = String(d.getHours()).padStart(2, "0");
-  const minutes = String(d.getMinutes()).padStart(2, "0");
+
+  // Use getUTC methods to prevent browser timezone shifting
+  const year = d.getUTCFullYear();
+  const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  const hours = String(d.getUTCHours()).padStart(2, "0");
+  const minutes = String(d.getUTCMinutes()).padStart(2, "0");
+  
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
@@ -177,7 +181,7 @@ function EditChapter() {
           content: data.content, // Quill will now output valid HTML since it received valid HTML
           isLocked: data.isLocked,
           coinCost: data.isLocked ? data.coinCost : 0,
-          scheduledReleaseDate: data.isLocked && data.scheduledReleaseDate ? data.scheduledReleaseDate : null
+          scheduledReleaseDate: data.isLocked && data.scheduledReleaseDate ? `${data.scheduledReleaseDate}Z` : null
         }
       );
 
@@ -351,20 +355,14 @@ function EditChapter() {
                             {errors.coinCost && <span className="text-red-500 text-sm mt-1">{errors.coinCost.message}</span>}
                         </div>
 
-                        {/* NEW: Specific Release Date Picker */}
-                        <div className="border-t border-gray-700 pt-4">
-                            <label className="label">
-                                <span className="label-text font-semibold">
-                                  Scheduled Auto-Unlock Date  <span className="text-gray-400 font-normal ml-1">(EST / New York Time)</span>
-                                </span>
-                            </label>
-                            <input
-                              type="datetime-local"
-                              {...register("scheduledReleaseDate")}
-                              className="input input-bordered w-full md:w-1/2 bg-slate-500 text-black focus:border-cyan-500"
-                              min={minDateTime}
-                            />
-                        </div>
+                        {/* NEW: Reusable Date Picker */}
+                        <ScheduleDatePicker 
+                          register={register} 
+                          name="scheduledReleaseDate" 
+                          min={minDateTime} 
+                          disabled={fetchLoading || !!error} 
+                          error={errors.scheduledReleaseDate} 
+                        />
                     </div>
                 )}
             </div>
