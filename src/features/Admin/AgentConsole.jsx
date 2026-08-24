@@ -76,6 +76,7 @@ function AgentConsole() {
   const [translatedTitle, setTranslatedTitle] = useState("");
   const [translatedContent, setTranslatedContent] = useState("");
   const [newVocabItems, setNewVocabItems] = useState([]);
+  const [missedTerms, setMissedTerms] = useState([]);
 
   // --- VOCAB UPLOAD STATE ---
   const [isVocabModalOpen, setIsVocabModalOpen] = useState(false);
@@ -104,18 +105,18 @@ function AgentConsole() {
   const coinOptions = [10, 20, 30, 40, 50, 60];
 
   // --- NEW: Helper to extract missed terms from the QA Array ---
-  const extractMissedTerms = (reasons) => {
-    const terms = [];
-    reasons.forEach(reason => {
-      const match = reason.match(/->\s*(.+)$/);
-      if (match) {
-        // Matches things like: "First Grade", "Formation Arts"
-        const extracted = match[1].split(',').map(t => t.trim().replace(/"/g, ''));
-        terms.push(...extracted);
-      }
-    });
-    return terms;
-  };
+  // const extractMissedTerms = (reasons) => {
+  //   const terms = [];
+  //   reasons.forEach(reason => {
+  //     const match = reason.match(/->\s*(.+)$/);
+  //     if (match) {
+  //       // Matches things like: "First Grade", "Formation Arts"
+  //       const extracted = match[1].split(',').map(t => t.trim().replace(/"/g, ''));
+  //       terms.push(...extracted);
+  //     }
+  //   });
+  //   return terms;
+  // };
 
   // Helper to format AI text into Quill HTML and apply Fuzzy Highlighting
   const formatContentForEditor = (content, missedTerms = []) => {
@@ -207,13 +208,15 @@ function AgentConsole() {
         headers: { Authorization: `Bearer ${auth?.token}` }
       });
 
-      const { translatedTitle: tTitle, translatedContent: tContent, newVocabItems: vocab, qualityScore: qScore, scoreReasons: qReasons } = response.data.data;
+      const { translatedTitle: tTitle, translatedContent: tContent, newVocabItems: vocab, qualityScore: qScore, scoreReasons: qReasons, missedTermsData: mTerms } = response.data.data;
 
-      // Extract the terms before formatting the content
-      const missedTerms = extractMissedTerms(qReasons || []);
+      // // Extract the terms before formatting the content
+      // const missedTerms = extractMissedTerms(qReasons || []);
+
+      setMissedTerms(mTerms || []);
       
       setTranslatedTitle(tTitle);
-      setTranslatedContent(formatContentForEditor(tContent, missedTerms));
+      setTranslatedContent(formatContentForEditor(tContent));
       setNewVocabItems(vocab || []);
       setQualityScore(qScore);
       setScoreReasons(qReasons || []);
@@ -472,6 +475,28 @@ function AgentConsole() {
 
                 <div className="flex flex-col">
                   <label className="label"><span className="label-text font-semibold text-gray-300">English Chapter Content</span></label>
+                  
+                  {/* NEW: Missed Terms Action Banner */}
+                  {missedTerms?.length > 0 && (
+                    <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-t-lg p-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                      <div className="flex items-center gap-2 text-yellow-400">
+                        <FaExclamationTriangle className="text-xl shrink-0" />
+                        <span className="text-sm font-bold">Action Required:</span>
+                      </div>
+                      <span className="text-xs text-yellow-200/80">The AI hallucinated these terms. Please inject them manually:</span>
+                      <div className="flex flex-wrap gap-2 mt-2 sm:mt-0 sm:ml-auto">
+                        
+                        {/* Render the term AND the paragraph numbers! */}
+                        {missedTerms?.map((item, idx) => (
+                          <span key={idx} className="badge badge-warning font-bold text-black shadow-lg">
+                            {item.term} {item.paragraphs?.length > 0 ? `(Para ${item.paragraphs.join(', ')})` : ''}
+                          </span>
+                        ))}
+
+                      </div>
+                    </div>
+                  )}
+
                   <div className="h-[600px] flex flex-col bg-slate-200 rounded text-black overflow-hidden">
                     <ReactQuill 
                       theme="snow"
@@ -492,13 +517,15 @@ function AgentConsole() {
 
               {/* QA Scoring Card */}
               {qualityScore !== null && (
-                <div className={`border rounded-2xl p-5 shadow-xl mb-6 ${qualityScore >= 60 ? 'bg-green-900/20 border-green-500/30' : 'bg-red-900/20 border-red-500/30'}`}>
-                  <h3 className={`text-lg font-bold flex items-center justify-between mb-2 ${qualityScore >= 60 ? 'text-green-400' : 'text-red-400'}`}>
+                <div className={`border rounded-2xl p-5 shadow-xl mb-6 ${qualityScore >= 80 ? 'bg-green-900/20 border-green-500/30' : qualityScore >= 60 ? 'bg-yellow-900/20 border-yellow-500/30' : 'bg-red-900/20 border-red-500/30'}`}>
+                  <h3 className={`text-lg font-bold flex items-center justify-between mb-2 ${qualityScore >= 80 ? 'text-green-400' : qualityScore >= 60 ? 'text-yellow-400' : 'text-red-400' }`}>
                     <span>Translation Quality</span>
                     <span className="text-2xl">{qualityScore}/100</span>
                   </h3>
-                  {qualityScore >= 60 ? (
+                  {qualityScore >= 80 ? (
                     <p className="text-sm text-green-200/80">Excellent translation. Structure and glossary adherence are optimal.</p>
+                  ) : qualityScore >= 60 ? (
+                    <p className="text-sm text-yellow-200/80">Average translation. Some structure or glossary adherence issues.</p>
                   ) : (
                     <p className="text-sm text-red-200/80 font-bold">Warning: Review required before publishing.</p>
                   )}
