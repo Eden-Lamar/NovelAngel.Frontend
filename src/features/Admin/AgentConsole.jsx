@@ -119,7 +119,7 @@ function AgentConsole() {
   // };
 
   // Helper to format AI text into Quill HTML and apply Fuzzy Highlighting
-  const formatContentForEditor = (content, missedTerms = []) => {
+  const formatContentForEditor = (content) => {
   if (!content) return "";
     let processedContent = content;
 
@@ -132,25 +132,25 @@ function AgentConsole() {
       }).join('');
     }
 
-    // 2. Inject Highlights SECOND
-    if (missedTerms.length > 0) {
-      missedTerms.forEach(term => {
-        // Create a fuzzy regex that replaces spaces with an optional hyphen/space matcher
-        const fuzzyTerm = term
-          .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-          .split(/\s+/)
-          .join('[\\s\\-]+'); 
+    // // 2. Inject Highlights SECOND
+    // if (missedTerms.length > 0) {
+    //   missedTerms.forEach(term => {
+    //     // Create a fuzzy regex that replaces spaces with an optional hyphen/space matcher
+    //     const fuzzyTerm = term
+    //       .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    //       .split(/\s+/)
+    //       .join('[\\s\\-]+'); 
         
-        const regex = new RegExp(`(${fuzzyTerm})`, 'gi');
+    //     const regex = new RegExp(`(${fuzzyTerm})`, 'gi');
         
-        // FIX: The style MUST be on a <span> for Quill to recognize the background format!
-        // We also use rgb(255, 255, 0) and the built-in ql-bg-yellow class to force Quill's hand.
-        processedContent = processedContent.replace(
-          regex, 
-          `<span class="ql-bg-yellow" style="background-color: rgb(255, 255, 0);"><strong>$1</strong></span>`
-        );
-      });
-    }
+    //     // FIX: The style MUST be on a <span> for Quill to recognize the background format!
+    //     // We also use rgb(255, 255, 0) and the built-in ql-bg-yellow class to force Quill's hand.
+    //     processedContent = processedContent.replace(
+    //       regex, 
+    //       `<span class="ql-bg-yellow" style="background-color: rgb(255, 255, 0);"><strong>$1</strong></span>`
+    //     );
+    //   });
+    // }
     
     // 3. Inject Red Highlights for Leaked Chinese Characters
     // Matches one or more Chinese characters
@@ -172,10 +172,10 @@ function AgentConsole() {
         const response = await api.get(`/books/${bookId}`);
         const bookData = response.data.data;
         setBook(bookData);
-        setNextChapterNo(bookData.chapters ? bookData.chapters.length + 1 : 1);
+        setNextChapterNo((bookData?.chapters?.length || 0) + 1);
         
         // Auto-set free/locked status based on freeChapters count
-        if (bookData.chapters && bookData.chapters.length < bookData.freeChapters) {
+        if (bookData?.chapters && bookData.chapters.length < (bookData.freeChapters || 0)) {
             setValue("isLocked", false);
         }
 
@@ -259,6 +259,7 @@ function AgentConsole() {
       setTranslatedTitle("");
       setTranslatedContent("");
       setNewVocabItems([]);
+      setMissedTerms([]);
       setNextChapterNo(prev => prev + 1);
       setStep(1);
       
@@ -497,7 +498,7 @@ function AgentConsole() {
                     </div>
                   )}
 
-                  <div className="h-[600px] flex flex-col bg-slate-200 rounded text-black overflow-hidden">
+                  <div className={`h-[600px] flex flex-col bg-slate-200 text-black overflow-hidden ${missedTerms?.length > 0 ? 'rounded-b' : 'rounded'}`}>
                     <ReactQuill 
                       theme="snow"
                       value={translatedContent} 
