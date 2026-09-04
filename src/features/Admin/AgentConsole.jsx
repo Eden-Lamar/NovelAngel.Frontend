@@ -89,6 +89,10 @@ function AgentConsole() {
   const [qualityScore, setQualityScore] = useState(null);
   const [scoreReasons, setScoreReasons] = useState([]);
 
+  // --- PUBLISH WARNING STATE ---
+  const [showPublishWarning, setShowPublishWarning] = useState(false);
+  const [pendingPublishData, setPendingPublishData] = useState(null);
+
   // --- VOCAB MODAL HANDLERS ---
   const handleCloseModal = () => {
     setIsVocabModalOpen(false);
@@ -152,14 +156,14 @@ function AgentConsole() {
     //   });
     // }
     
-    // 3. Inject Red Highlights for Leaked Chinese Characters
-    // Matches one or more Chinese characters
-    const chineseRegex = /([\u4e00-\u9fa5]+)/g; 
-    if (chineseRegex.test(processedContent)) {
+    // 3. IInject Red Highlights for Leaked Asian Characters (Chinese + Japanese)
+    // Matches one or more Asian Characters (Chinese + Japanese) characters
+    const leakedRegex = /([\u4e00-\u9fa5\u3040-\u309f\u30a0-\u30ff]+)/g; 
+    if (leakedRegex.test(processedContent)) {
       // Wrap them in a bright red background so the admin can't miss them
       processedContent = processedContent.replace(
-        chineseRegex, 
-        `<span class="ql-bg-red" style="background-color: rgb(255, 153, 153); color: black;"><strong>$1</strong></span>`
+        leakedRegex, 
+        `<span class="ql-bg-red" style="background-color: rgb(251, 79, 79); color: black;"><strong>$1</strong></span>`
       );
     }
     return processedContent;
@@ -227,6 +231,16 @@ function AgentConsole() {
       setError(err.response?.data?.error || "Translation failed. Please try again.");
     } finally {
       setIsTranslating(false);
+    }
+  };
+
+  // --- HANDLER: Intercept Publish Attempt ---
+  const onPublishAttempt = (data) => {
+    if (qualityScore !== null && qualityScore < 80) {
+      setPendingPublishData(data);
+      setShowPublishWarning(true);
+    } else {
+      handlePublish(data);
     }
   };
 
@@ -446,7 +460,7 @@ function AgentConsole() {
 
       {/* STEP 2: REVIEW & PUBLISH */}
       {step === 2 && (
-        <form onSubmit={handleSubmit(handlePublish)} className="space-y-6 animate__animated animate__fadeIn">
+        <form onSubmit={handleSubmit(onPublishAttempt)} className="space-y-6 animate__animated animate__fadeIn">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
@@ -457,7 +471,7 @@ function AgentConsole() {
                   <FaCheckCircle className="text-green-400 text-xl" />
                   <h2 className="text-xl font-bold text-white">Review Translation</h2>
                 </div>
-                <button type="button" onClick={() => setStep(1)} className="btn btn-outline btn-ghost">
+                <button type="button" onClick={() => setStep(1)} className="btn btn-sm btn-outline btn-ghost">
                   <IoChevronBack /> Edit Raw
                 </button>
               </div>
@@ -544,7 +558,10 @@ function AgentConsole() {
               {/* Pre-Flight Vocab Discovered */}
               <div className="bg-black/40 border border-green-500/30 rounded-2xl p-5 shadow-xl">
                 <h3 className="text-lg font-bold text-green-400 flex items-center gap-2 mb-3">
-                  <BsFillFileEarmarkWordFill /> New Terminology Found
+                  <span className="flex items-center gap-2"><BsFillFileEarmarkWordFill /> New Terminology Found</span>
+                  {newVocabItems?.length > 0 && (
+                    <span className="badge badge-sm badge-success font-bold">{newVocabItems.length}</span>
+                  )}
                 </h3>
                 {newVocabItems && newVocabItems.length > 0 ? (
                   <ul className="space-y-2 text-sm max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
@@ -613,6 +630,51 @@ function AgentConsole() {
             </div>
           </div>
         </form>
+      )}
+
+      {/* QUALITY WARNING MODAL */}
+      {showPublishWarning && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className={`border rounded-2xl p-6 max-w-md w-full shadow-2xl relative ${
+            qualityScore < 20 ? 'bg-red-950 border-red-500/50' : 'bg-gray-900 border-yellow-500/50'
+          }`}>
+            <div className="flex items-center gap-3 mb-4">
+              {qualityScore < 20 ? (
+                <FaExclamationTriangle className="text-4xl text-red-500 animate-pulse" />
+              ) : (
+                <FaExclamationTriangle className="text-4xl text-yellow-500" />
+              )}
+              <div>
+                <h3 className={`text-xl font-bold ${qualityScore < 20 ? 'text-red-400' : 'text-yellow-400'}`}>
+                  {qualityScore < 20 ? 'Critical Quality Alert' : 'Manual Review Recommended'}
+                </h3>
+              </div>
+            </div>
+            
+            <p className="text-gray-300 text-sm mb-6">
+              {qualityScore < 20 
+                ? `This translation scored an abysmal ${qualityScore}/100. Publishing this without heavy manual editing will severely impact reader experience. Are you absolutely sure you want to proceed?`
+                : `This translation scored ${qualityScore}/100. It may require additional manual review to fix structure, missed vocabulary, or hallucinations. Do you want to publish anyway?`}
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => setShowPublishWarning(false)} 
+                className="btn btn-ghost text-gray-300"
+                disabled={isPublishing}
+              >
+                Cancel & Review
+              </button>
+              <button 
+                onClick={() => handlePublish(pendingPublishData)} 
+                className={`btn ${qualityScore < 20 ? 'btn-error' : 'btn-warning'}`}
+                disabled={isPublishing}
+              >
+                {isPublishing ? <span className="loading loading-spinner"></span> : 'Publish Anyway'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
 
