@@ -10,8 +10,8 @@ import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
 // Icons
-import { RiRobot2Fill, RiMagicLine, RiFileUploadFill, RiCloseLine } from "react-icons/ri";
-import { GiTwoCoins } from "react-icons/gi";
+import { RiMagicLine, RiFileUploadFill, RiCloseLine } from "react-icons/ri";
+import { GiTwoCoins, GiSpy  } from "react-icons/gi";
 import { FaCheckCircle, FaArrowLeft, FaLock, FaUnlock, FaCloudUploadAlt, FaExclamationTriangle } from "react-icons/fa";
 import { IoChevronBack } from "react-icons/io5";
 import { BsFillFileEarmarkWordFill, BsTranslate } from "react-icons/bs";
@@ -334,6 +334,29 @@ function AgentConsole() {
 
   return (
     <main className="min-h-screen text-gray-100 p-4 md:p-6 max-w-7xl mx-auto">
+      {/* NEW: CSS for visually numbering paragraphs in the Quill Editor */}
+      <style>{`
+        .numbered-quill .ql-editor {
+          counter-reset: quill-paragraph;
+          padding-left: 3.5rem !important; /* Make room for numbers on the left */
+        }
+        .numbered-quill .ql-editor > p {
+          position: relative;
+        }
+        .numbered-quill .ql-editor > p:not(:has(> br:only-child)):not(:empty) {
+          counter-increment: quill-paragraph;
+        }
+        .numbered-quill .ql-editor > p:not(:has(> br:only-child)):not(:empty)::before {
+          content: counter(quill-paragraph);
+          position: absolute;
+          left: -3rem;
+          top: 0;
+          color: #9ca3af; /* slate-400 */
+          font-size: 0.75rem;
+          font-weight: bold;
+          user-select: none; /* Prevents user from selecting the number while copying text */
+        }
+      `}</style>
 
        {/* Alerts */}
       <div className="fixed left-[42%] top-4 -translate-x-1/2 z-50 animate__animated animate__fadeInDown">
@@ -366,15 +389,15 @@ function AgentConsole() {
           </div>
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <RiRobot2Fill className="text-cyan-400 text-3xl " />
-              <h1 className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gold to-cyan-500">
-                AI Translation Agent
+              <GiSpy className="text-gray-400 text-5xl " />
+              <h1 className="text-3xl md:text-4xl font-semibold font-vibes text-transparent bg-clip-text bg-gradient-to-r from-gold to-cyan-500">
+                Translation Agent
               </h1>
             </div>
-            <h2 className="text-lg font-semibold text-white capitalize">{startCase(book?.title)}</h2>
+            <h2 className="text-xl font-semibold text-amber-500 capitalize">{startCase(book?.title)}</h2>
             <div className="flex flex-wrap gap-2 mt-3">
               <div className="badge badge-outline badge-info gap-1 font-bold">
-                Targeting: Chapter {nextChapterNo}
+                Chapter {nextChapterNo}
               </div>
               <div className={`badge gap-1 ${step === 1 ? 'badge-warning' : 'badge-success'}`}>
                 {step === 1 ? 'Step 1: Input Source' : 'Step 2: Review & Publish'}
@@ -434,7 +457,8 @@ function AgentConsole() {
                   onChange={setRawContent}
                   modules={modules}
                   formats={formats}
-                  className="h-full flex flex-col"
+                  // Added numbered-quill here so you can cross-reference the Chinese paragraphs!
+                  className="h-full flex flex-col numbered-quill"
                   placeholder="Paste raw Chinese prose here..."
                   readOnly={isTranslating}
                 />
@@ -519,7 +543,8 @@ function AgentConsole() {
                       onChange={setTranslatedContent}
                       modules={modules}
                       formats={formats}
-                      className="h-full flex flex-col"
+                      // Added numbered-quill here to enable paragraph numbering!
+                      className="h-full flex flex-col numbered-quill"
                       readOnly={isPublishing}
                     />
                   </div>
