@@ -7,7 +7,7 @@ import { RiArrowDownWideFill, RiStickyNoteAddFill, RiFileEditFill, RiRobot2Fill 
 import { GrDownload } from "react-icons/gr";
 import { LuTrash2 } from "react-icons/lu";
 import { GiTwoCoins } from "react-icons/gi";
-// import { PiBooksDuotone } from "react-icons/pi";
+import { PiSortAscendingBold , PiSortDescendingBold   } from "react-icons/pi";
 // import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import { useAuth } from "../../context/AuthContext";
@@ -37,6 +37,9 @@ function BookDetails() {
     });
 
     const [prevLikeCount, setPrevLikeCount] = useState(null); // Stores prevIsLiked and prevCount to revert on failure.
+		
+		// State for Chapter Sorting (true = Descending/Newest first)
+    const [isSortDesc, setIsSortDesc] = useState(true);
 
     // Fetch book details and like/bookmark status
     useEffect(() => {
@@ -228,6 +231,12 @@ function BookDetails() {
         return { fullDate, year }
     };
 		console.log(prevLikeCount);
+
+		// NEW: Computed property for sorted chapters
+    const sortedChapters = book?.chapters ? [...book.chapters].sort((a, b) => {
+        return isSortDesc ? b.chapterNo - a.chapterNo : a.chapterNo - b.chapterNo;
+    }) : [];
+
     return (
         <main className="main-container p-4">
             {/* Error Alert */}
@@ -564,9 +573,20 @@ function BookDetails() {
 																			<div className="mt-4">
 																					{/* 1. NEW RESPONSIVE HEADER (Outside the table) */}
 																					<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-																							<h3 className="text-white text-lg font-semibold pl-1">
-																									Chapters
-																							</h3>
+																							
+																							{/* NEW: Sort Toggle inserted into Header */}
+                                              <div className="flex items-center gap-2">
+                                                  <h3 className="text-white text-lg font-semibold pl-1">
+                                                      Chapters
+                                                  </h3>
+                                                  <button 
+                                                      onClick={() => setIsSortDesc(!isSortDesc)}
+                                                      className="btn btn-ghost btn-circle btn-sm text-gray-400 hover:text-white"
+                                                      title={isSortDesc ? "Sort Oldest First" : "Sort Newest First"}
+                                                  >
+                                                      {isSortDesc ? <PiSortAscendingBold  className="text-lg" /> : <PiSortDescendingBold   className="text-lg" />}
+                                                  </button>
+                                              </div>
 																							
 																							<div className="flex gap-4">
 																								<Link
@@ -587,11 +607,9 @@ function BookDetails() {
 																					{/* 2. TABLE CONTAINER (Only holds the data list now) */}
 																					<div className="overflow-x-auto border-[1px] border-gray-700 rounded-lg">
 																							<table className="table w-full">
-																									{/* Optional: Simple header just for column labels if you want, 
-																											or remove <thead> entirely since we have the title above */}
-																									
+																									{/* NEW: Map over sortedChapters instead of book.chapters */}																									
 																									<tbody className="text-white text-base font-medium">
-																											{book.chapters.map((chapter) => (
+																											{sortedChapters.map((chapter) => (
 																													<tr key={chapter._id} className="hover:bg-gray-800/50 transition-colors border-b border-gray-700/50 last:border-none">
 																															{/* Column 1: Chapter Info */}
 																															<td className="align-middle">
