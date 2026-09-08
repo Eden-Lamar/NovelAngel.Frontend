@@ -11,7 +11,7 @@ import 'react-quill/dist/quill.snow.css';
 
 // Icons
 import { RiMagicLine, RiFileUploadFill, RiCloseLine } from "react-icons/ri";
-import { GiTwoCoins, GiSpy  } from "react-icons/gi";
+import { GiTwoCoins, GiSpy } from "react-icons/gi";
 import { FaCheckCircle, FaArrowLeft, FaLock, FaUnlock, FaCloudUploadAlt, FaExclamationTriangle } from "react-icons/fa";
 import { IoChevronBack } from "react-icons/io5";
 import { BsFillFileEarmarkWordFill, BsTranslate } from "react-icons/bs";
@@ -469,7 +469,7 @@ function AgentConsole() {
               <button 
                 onClick={handlePreview} 
                 disabled={isTranslating || !rawTitle || !rawContent}
-                className="btn btn-info w-full md:w-64 gap-2"
+                className="btn btn-info md:w-64 gap-2"
               >
                 {isTranslating ? (
                   <><span className="loading loading-spinner"></span> Running Agent...</>
@@ -712,7 +712,7 @@ function AgentConsole() {
               <RiFileUploadFill className="text-3xl text-yellow-400" />
               <div>
                 <h3 className="text-lg font-bold text-white">Import Vocabulary</h3>
-                <p className="text-xs text-gray-400">Upload a .docx file to bulk add terms.</p>
+                <p className="text-xs text-gray-400">Upload a .docx file to add the vocab terms for this book.</p>
               </div>
             </div>
 
