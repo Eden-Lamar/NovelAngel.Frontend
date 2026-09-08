@@ -3,10 +3,10 @@ import api from "../../api/axios";
 import { startCase, truncate, capitalize } from 'lodash';
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { FaHeart, FaRegEye, FaBookOpen, FaBookReader, FaLock, FaUnlock, FaEdit, FaBookmark } from "react-icons/fa";
-import { RiArrowDownWideFill, RiStickyNoteAddFill, RiFileEditFill, RiRobot2Fill } from "react-icons/ri";
+import { RiArrowDownWideFill, RiStickyNoteAddFill, RiFileEditFill } from "react-icons/ri";
 import { GrDownload } from "react-icons/gr";
 import { LuTrash2 } from "react-icons/lu";
-import { GiTwoCoins } from "react-icons/gi";
+import { GiTwoCoins, GiSpy } from "react-icons/gi";
 import { PiSortAscendingBold , PiSortDescendingBold   } from "react-icons/pi";
 // import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
@@ -575,20 +575,20 @@ function BookDetails() {
 																					<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
 																							
 																							{/* NEW: Sort Toggle inserted into Header */}
-                                              <div className="flex items-center gap-2">
-                                                  <h3 className="text-white text-lg font-semibold pl-1">
-                                                      Chapters
-                                                  </h3>
-                                                  <button 
-                                                      onClick={() => setIsSortDesc(!isSortDesc)}
-                                                      className="btn btn-ghost btn-circle btn-sm text-gray-400 hover:text-white"
-                                                      title={isSortDesc ? "Sort Oldest First" : "Sort Newest First"}
-                                                  >
-                                                      {isSortDesc ? <PiSortAscendingBold  className="text-lg" /> : <PiSortDescendingBold   className="text-lg" />}
-                                                  </button>
-                                              </div>
+																					<div className="flex items-center gap-2">
+																							<h3 className="text-white text-lg font-semibold pl-1">
+																									Chapters
+																							</h3>
+																							<button 
+																									onClick={() => setIsSortDesc(!isSortDesc)}
+																									className="btn btn-ghost btn-circle btn-sm text-gray-400 hover:text-white"
+																									title={isSortDesc ? "Sort Oldest First" : "Sort Newest First"}
+																							>
+																									{isSortDesc ? <PiSortAscendingBold  className="text-lg" /> : <PiSortDescendingBold   className="text-lg" />}
+																							</button>
+																					</div>
 																							
-																							<div className="flex gap-4">
+																							<div className="flex justify-around w-1/3">
 																								<Link
 																										to={`/admin/add-chapter/${book.slug || book._id}`}
 																										className="btn btn-outline btn-success btn-sm w-full sm:w-auto"
@@ -597,8 +597,8 @@ function BookDetails() {
 																										<span>Add Chapter</span>
 																								</Link>
 
-																								<Link to={`/admin/books/${book.slug || book._id}/agent`} className="btn btn-outline btn-primary btn-sm w-full sm:w-auto">
-																									<RiRobot2Fill className="mr-2"/> Agent Console
+																								<Link to={`/admin/books/${book.slug || book._id}/agent`} className="btn btn-circle btn-outline btn-primary btn-sm " title="Agent Console">
+																									<GiSpy className="text-4xl"/>
 																								</Link>
 
 																							</div>
