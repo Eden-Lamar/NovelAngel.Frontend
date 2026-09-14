@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef} from "react";
 import { useParams, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -12,7 +12,7 @@ import 'react-quill/dist/quill.snow.css';
 // Icons
 import { RiMagicLine, RiFileUploadFill, RiCloseLine } from "react-icons/ri";
 import { GiTwoCoins, GiSpy } from "react-icons/gi";
-import { FaCheckCircle, FaArrowLeft, FaLock, FaUnlock, FaCloudUploadAlt, FaExclamationTriangle } from "react-icons/fa";
+import { FaCheckCircle, FaArrowLeft, FaLock, FaUnlock, FaCloudUploadAlt, FaExclamationTriangle, FaStop } from "react-icons/fa";
 import { IoChevronBack } from "react-icons/io5";
 import { BsFillFileEarmarkWordFill, BsTranslate } from "react-icons/bs";
 
@@ -92,6 +92,28 @@ function AgentConsole() {
   // --- PUBLISH WARNING STATE ---
   const [showPublishWarning, setShowPublishWarning] = useState(false);
   const [pendingPublishData, setPendingPublishData] = useState(null);
+
+  // NEW: Store the AbortController so the Stop button can access it
+  const abortControllerRef = useRef(null);
+
+  // NEW: Handler to kill the request both locally and on the server
+  const handleAbort = async () => {
+    // 1. Instantly kill the local loading state and Axios request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    setIsTranslating(false);
+    setError("Translation aborted. Credits saved.");
+
+    // 2. Fire a background blast to the server's kill switch
+    try {
+      await api.post('/agent/abort', { bookId: book._id }, {
+        headers: { Authorization: `Bearer ${auth?.token}` }
+      });
+    } catch (err) {
+      console.error("Failed to trigger server kill switch:", err);
+    }
+  };
 
   // --- VOCAB MODAL HANDLERS ---
   const handleCloseModal = () => {
@@ -203,13 +225,17 @@ function AgentConsole() {
     setIsTranslating(true);
     setError(null);
 
+    // Create a fresh controller for this request
+    abortControllerRef.current = new AbortController();
+
     try {
       const response = await api.post('/agent/preview', {
         bookId: book._id,
         rawTitle,
         rawContent
       }, {
-        headers: { Authorization: `Bearer ${auth?.token}` }
+        // headers: { Authorization: `Bearer ${auth?.token}` },
+        signal: abortControllerRef.current.signal // <-- Attach the signal here
       });
 
       const { translatedTitle: tTitle, translatedContent: tContent, newVocabItems: vocab, qualityScore: qScore, scoreReasons: qReasons, missedTermsData: mTerms } = response.data.data;
@@ -218,7 +244,6 @@ function AgentConsole() {
       // const missedTerms = extractMissedTerms(qReasons || []);
 
       setMissedTerms(mTerms || []);
-      
       setTranslatedTitle(tTitle);
       setTranslatedContent(formatContentForEditor(tContent));
       setNewVocabItems(vocab || []);
@@ -228,7 +253,12 @@ function AgentConsole() {
 
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.error || "Translation failed. Please try again.");
+     // NEW: Differentiate between a user abort and a real error
+      if (err.name === 'CanceledError' || err.message === 'canceled') {
+        setError("Translation aborted by user.");
+      } else {
+        setError(err.response?.data?.error || "Translation failed. Please try again.");
+      }
     } finally {
       setIsTranslating(false);
     }
@@ -465,7 +495,8 @@ function AgentConsole() {
               </div>
             </div>
 
-            <div className="flex justify-end pt-4">
+            <div className="flex justify-end pt-4 gap-3">
+              {/* The Translate & Preview Button */}
               <button 
                 onClick={handlePreview} 
                 disabled={isTranslating || !rawTitle || !rawContent}
@@ -477,6 +508,17 @@ function AgentConsole() {
                   <><RiMagicLine className="text-xl" /> Translate & Preview</>
                 )}
               </button>
+
+              {/* The Stop Button */}
+              {isTranslating && (
+                <button 
+                  onClick={handleAbort} 
+                  className="btn btn-error btn-circle btn-outline border-[3px]"
+                  title="Abort Translation"
+                >
+                  <FaStop />
+                </button>
+              )}
             </div>
           </div>
         </div>
