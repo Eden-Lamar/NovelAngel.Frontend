@@ -8,6 +8,8 @@ import api from "../../api/axios";
 import { startCase } from 'lodash';
 import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import 'animate.css';
+
 
 // Icons
 import { RiMagicLine, RiFileUploadFill, RiCloseLine } from "react-icons/ri";
@@ -511,13 +513,15 @@ function AgentConsole() {
 
               {/* The Stop Button */}
               {isTranslating && (
-                <button 
-                  onClick={handleAbort} 
-                  className="btn btn-error btn-circle btn-outline border-[3px]"
-                  title="Abort Translation"
-                >
-                  <FaStop />
-                </button>
+                <div className="animate__animated animate__rubberBand">
+                  <button 
+                    onClick={handleAbort} 
+                    className="btn btn-error btn-circle btn-outline border-[3px]"
+                    title="Abort Translation"
+                  >
+                    <FaStop />
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -558,7 +562,7 @@ function AgentConsole() {
                   <label className="label"><span className="label-text font-semibold text-gray-300">English Chapter Content</span></label>
                   
                   {/* NEW: Missed Terms Action Banner */}
-                  {missedTerms?.length > 0 && (
+                  {/* {missedTerms?.length > 0 && (
                     <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-t-lg p-3 flex flex-col sm:flex-row sm:items-center gap-3">
                       <div className="flex items-center gap-2 text-yellow-400">
                         <FaExclamationTriangle className="text-xl shrink-0" />
@@ -567,7 +571,6 @@ function AgentConsole() {
                       <span className="text-xs text-yellow-200/80">The AI hallucinated these terms. Please inject them manually:</span>
                       <div className="flex flex-wrap gap-2 mt-2 sm:mt-0 sm:ml-auto">
                         
-                        {/* Render the term AND the paragraph numbers! */}
                         {missedTerms?.map((item, idx) => (
                           <span key={idx} className="badge badge-warning font-bold text-black shadow-lg">
                             {item.term} {item.paragraphs?.length > 0 ? `(Para ${item.paragraphs.join(', ')})` : ''}
@@ -576,7 +579,7 @@ function AgentConsole() {
 
                       </div>
                     </div>
-                  )}
+                  )} */}
 
                   <div className={`h-[600px] flex flex-col bg-slate-200 text-black overflow-hidden ${missedTerms?.length > 0 ? 'rounded-b' : 'rounded'}`}>
                     <ReactQuill 
