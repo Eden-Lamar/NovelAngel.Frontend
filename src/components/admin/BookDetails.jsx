@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import api from "../../api/axios";
 import { startCase, truncate, capitalize } from 'lodash';
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { FaHeart, FaRegEye, FaBookOpen, FaBookReader, FaLock, FaUnlock, FaEdit, FaBookmark } from "react-icons/fa";
+import { FaHeart, FaRegEye, FaBookOpen, FaBookReader, FaLock, FaUnlock, FaEdit, FaBookmark, FaPinterest } from "react-icons/fa";
 import { RiArrowDownWideFill, RiStickyNoteAddFill, RiFileEditFill } from "react-icons/ri";
 import { GrDownload } from "react-icons/gr";
 import { LuTrash2 } from "react-icons/lu";
@@ -40,6 +40,15 @@ function BookDetails() {
 		
 		// State for Chapter Sorting (true = Descending/Newest first)
     const [isSortDesc, setIsSortDesc] = useState(true);
+
+		// Pinterest State
+    const [generatingPinterestId, setGeneratingPinterestId] = useState(null);
+    const [isPublishingPinterest, setIsPublishingPinterest] = useState(false);
+    const [pinterestPreview, setPinterestPreview] = useState({
+        chapterId: null,
+        imageBase64: null,
+        text: null,
+    });
 
     // Fetch book details and like/bookmark status
     useEffect(() => {
@@ -204,6 +213,74 @@ function BookDetails() {
         } finally {
             setIsSavingUnlock(false);
         }
+    };
+
+		// NEW: Generate Preview for Pinterest
+    const handleGeneratePinterestPreview = async (chapterId) => {
+        setGeneratingPinterestId(chapterId);
+        try {
+            const response = await api.post(`/books/${book._id}/chapters/${chapterId}/pinterest`, {
+                action: 'preview'
+            }, {
+                headers: { Authorization: `Bearer ${auth?.token}` }
+            });
+
+            setPinterestPreview({
+                chapterId: chapterId,
+                imageBase64: response.data.data.imageBase64,
+                text: response.data.data.text
+            });
+            
+            document.getElementById('pinterest-preview-modal').showModal();
+            setError(null);
+        } catch (err) {
+            setError(err.response?.data?.message || "Failed to generate Pinterest preview.");
+        } finally {
+            setGeneratingPinterestId(null);
+        }
+    };
+
+    // NEW: Publish to Pinterest
+    const handlePublishToPinterest = async () => {
+        setIsPublishingPinterest(true);
+        try {
+            await api.post(`/books/${book._id}/chapters/${pinterestPreview.chapterId}/pinterest`, {
+                action: 'publish',
+                imageBase64: pinterestPreview.imageBase64,
+                text: pinterestPreview.text
+            }, {
+                headers: { Authorization: `Bearer ${auth?.token}` }
+            });
+
+            document.getElementById('pinterest-preview-modal').close();
+            // Clear preview state
+            setPinterestPreview({ chapterId: null, imageBase64: null, text: null });
+            
+            // Optional: Show a success toast/alert here
+            alert("Successfully published to Pinterest!");
+        } catch (err) {
+            setError(err.response?.data?.message || "Failed to publish to Pinterest.");
+        } finally {
+            setIsPublishingPinterest(false);
+        }
+    };
+		
+
+		// NEW: Download the generated Pinterest image
+    const handleDownloadImage = () => {
+        if (!pinterestPreview.imageBase64) return;
+        
+        // Create a temporary anchor element
+        const link = document.createElement("a");
+        link.href = `data:image/jpeg;base64,${pinterestPreview.imageBase64}`;
+        
+        // Name the downloaded file dynamically
+        link.download = `${book?.title.replace(/\s+/g, '_')}_Ch_${pinterestPreview.chapterId}_Pinterest.jpg`;
+        
+        // Trigger the download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     // Calculate free and locked chapters
@@ -657,6 +734,20 @@ function BookDetails() {
 																															{/* Column 3: Action Buttons */}
 																															<td className="text-right align-middle w-auto">
 																																	<div className="flex justify-end gap-2">
+																																			{/* PINTEREST BUTTON */}
+																																			<button
+																																					onClick={() => handleGeneratePinterestPreview(chapter._id)}
+																																					disabled={generatingPinterestId === chapter._id}
+																																					className="btn glass btn-circle glass-shimmer-hover bg-red-500/40 hover:bg-red-500 btn-sm"
+																																					title="Generate Pinterest Hook"
+																																			>
+																																					{generatingPinterestId === chapter._id ? (
+																																							<span className="loading loading-spinner loading-xs"></span>
+																																					) : (
+																																							<FaPinterest className="text-lg text-gray-200" />
+																																					)}
+																																			</button>
+
 																																			{/* EDIT BUTTON */}
 																																			<Link
 																																					to={`/admin/books/${book.slug || book._id}/chapters/${chapter._id}/edit`}
@@ -712,7 +803,7 @@ function BookDetails() {
 														disabled={deleteLoading}
                             aria-label="Confirm delete book"
                         >
-                          {deleteLoading && <span className="loading loading-spinner loading-sm"></span>}
+														{deleteLoading && <span className="loading loading-spinner loading-sm"></span>}
                             {deleteLoading ? "Deleting..." : "Confirm"}
                         </button>
                         <button
@@ -803,7 +894,72 @@ function BookDetails() {
                     </div>
                 </div>
             </dialog>
+					
+					{/* NEW: Pinterest Preview Modal */}
+            <dialog id="pinterest-preview-modal" className="modal">
+                <div className="modal-box w-2/3 max-w-xl bg-gray-900 border border-gray-700">
+                    <h3 className="font-bold text-xl text-red-500 mb-4 flex items-center gap-2">
+                        <FaPinterest /> Pinterest Preview
+                    </h3>
+                    
+                    <div className="flex justify-center">
+                        {/* Left: Image Preview */}
+                        <div className="w-2/3 flex justify-center p-4 rounded-xl border border-gray-700">
+                            {pinterestPreview.imageBase64 ? (
+                                <img 
+                                    src={`data:image/jpeg;base64,${pinterestPreview.imageBase64}`} 
+                                    alt="Pinterest Pin Preview" 
+                                    className="max-h-[600px] object-contain rounded-lg shadow-xl"
+                                />
+                            ) : (
+                                <div className="skeleton w-full h-[400px]"></div>
+                            )}
+                        </div>
 
+                        {/* Right: Text Preview */}
+                        {/* <div className="w-full md:w-1/2 flex flex-col justify-between">
+                            <div>
+                                <h4 className="text-[#FFD700] font-semibold mb-2">Generated Caption:</h4>
+                                <div className="bg-gray-800 p-4 rounded-xl border border-gray-700 text-gray-300 text-sm whitespace-pre-wrap h-64 overflow-y-auto">
+                                    {pinterestPreview.text}
+                                </div>
+                            </div>
+                            
+                            <p className="text-xs text-gray-500 mt-4">
+                                Click &quot;Publish&quot; to immediately post this image and caption to your Pinterest board.
+                            </p>
+                        </div> */}
+                    </div>
+
+                    <div className="flex justify-center modal-action mt-6 gap-10">
+                        <button 
+                            className="btn bg-red-600 text-white hover:bg-red-700 border-none w-32" 
+                            onClick={handlePublishToPinterest}
+                            disabled={isPublishingPinterest}
+                        >
+                            {isPublishingPinterest ? <span className="loading loading-spinner"></span> : "Publish Pin"}
+                        </button>
+
+												{/* NEW DOWNLOAD BUTTON */}
+                        <button 
+                            className="btn btn-outline btn-accent" 
+                            onClick={handleDownloadImage}
+                            disabled={isPublishingPinterest || !pinterestPreview.imageBase64}
+                            title="Download Image"
+                        >
+                            <GrDownload className="mr-2" /> Download
+                        </button>
+												
+                        <button 
+                            className="btn btn-outline" 
+                            onClick={() => document.getElementById('pinterest-preview-modal').close()}
+                            disabled={isPublishingPinterest}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </dialog>
         </main>
     );
 }
