@@ -46,6 +46,7 @@ function BookDetails() {
     const [isPublishingPinterest, setIsPublishingPinterest] = useState(false);
     const [pinterestPreview, setPinterestPreview] = useState({
         chapterId: null,
+				chapterNo: null,
         imageBase64: null,
         text: null,
     });
@@ -77,8 +78,8 @@ function BookDetails() {
                         : Promise.resolve({ data: { isLiked: false } }),
                     auth?.token
                         ? api.get(`/books/${realId}/bookmark-status`, {
-                              headers: { Authorization: `Bearer ${auth.token}` }
-                          })
+														headers: { Authorization: `Bearer ${auth.token}` }
+													})
                         : Promise.resolve({ data: { isBookmarked: false } })
                 ]);
 
@@ -216,7 +217,7 @@ function BookDetails() {
     };
 
 		// NEW: Generate Preview for Pinterest
-    const handleGeneratePinterestPreview = async (chapterId) => {
+    const handleGeneratePinterestPreview = async (chapterId, chapterNo) => {
         setGeneratingPinterestId(chapterId);
         try {
             const response = await api.post(`/books/${book._id}/chapters/${chapterId}/pinterest`, {
@@ -227,6 +228,7 @@ function BookDetails() {
 
             setPinterestPreview({
                 chapterId: chapterId,
+								chapterNo: chapterNo,
                 imageBase64: response.data.data.imageBase64,
                 text: response.data.data.text
             });
@@ -275,7 +277,7 @@ function BookDetails() {
         link.href = `data:image/jpeg;base64,${pinterestPreview.imageBase64}`;
         
         // Name the downloaded file dynamically
-        link.download = `${book?.title.replace(/\s+/g, '_')}_Ch_${pinterestPreview.chapterId}_Pinterest.jpg`;
+        link.download = `${book?.title} chapter ${pinterestPreview.chapterNo} - Novel Angel.jpeg`;
         
         // Trigger the download
         document.body.appendChild(link);
@@ -736,7 +738,7 @@ function BookDetails() {
 																																	<div className="flex justify-end gap-2">
 																																			{/* PINTEREST BUTTON */}
 																																			<button
-																																					onClick={() => handleGeneratePinterestPreview(chapter._id)}
+																																					onClick={() => handleGeneratePinterestPreview(chapter._id, chapter.chapterNo)}
 																																					disabled={generatingPinterestId === chapter._id}
 																																					className="btn glass btn-circle glass-shimmer-hover bg-red-500/40 hover:bg-red-500 btn-sm"
 																																					title="Generate Pinterest Hook"
