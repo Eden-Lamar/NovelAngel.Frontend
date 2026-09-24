@@ -935,11 +935,17 @@ function BookDetails() {
 
                     <div className="flex justify-center modal-action mt-6 gap-10">
                         <button 
-                            className="btn bg-red-600 text-white hover:bg-red-700 border-none w-32" 
+                            className="btn bg-red-600 text-white hover:bg-red-700 border-none w-36" 
                             onClick={handlePublishToPinterest}
                             disabled={isPublishingPinterest}
                         >
-                            {isPublishingPinterest ? <span className="loading loading-spinner"></span> : "Publish Pin"}
+                            {isPublishingPinterest ? (
+                                <span className="loading loading-spinner"></span>
+                            ) : (
+                                <>
+                                    <FaPinterest className="mr-2 text-lg" /> Publish Pin
+                                </>
+                            )}
                         </button>
 
 												{/* NEW DOWNLOAD BUTTON */}
